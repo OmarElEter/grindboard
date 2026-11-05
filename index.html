@@ -204,6 +204,42 @@ textarea{min-height:72px;resize:vertical}
 @keyframes sheetUp{from{transform:translateY(40px);opacity:.5}}
 .grab{width:42px;height:5px;border-radius:9px;background:var(--line);margin:4px auto 2px;flex:none}
 .danger{color:var(--fire);border-color:var(--fire-soft)}
+
+:root{--gain:#1d8556;--loss:#c4392d}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]){--gain:#5fd09a;--loss:#ff7b6e}}
+:root[data-theme="dark"]{--gain:#5fd09a;--loss:#ff7b6e}
+.pos{color:var(--gain)}.neg{color:var(--loss)}
+/* journal */
+.seg3{display:grid;grid-template-columns:repeat(3,1fr);background:var(--sunk);border-radius:14px;padding:4px;gap:4px}
+.seg3 button{border:0;background:none;border-radius:10px;padding:10px 4px;font-weight:700;color:var(--muted)}
+.seg3 button[aria-selected="true"]{background:var(--surface);color:var(--ink);box-shadow:0 1px 3px rgba(0,0,0,.12)}
+.seg.three{grid-template-columns:repeat(3,1fr)}
+.jrow{gap:5px}
+.jtop{display:flex;justify-content:space-between;gap:10px;align-items:baseline}
+.jtop b{font-family:var(--mono);font-variant-numeric:tabular-nums;flex:none}
+.jnote{font-size:13.5px;color:var(--muted);display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden}
+.trow .proof{flex:none;margin:0}
+.cardhead b{font-family:var(--mono);font-variant-numeric:tabular-nums}
+.bigin{font-family:var(--mono);font-size:22px;font-weight:600}
+.flabel{font-weight:600;font-size:14px}
+.thumbs{display:flex;flex-wrap:wrap;gap:8px}
+.thumb{position:relative;width:76px;height:76px;border-radius:12px;overflow:hidden;background:var(--sunk);border:1px solid var(--line);flex:none}
+.thumb img{width:100%;height:100%;object-fit:cover;display:block;cursor:zoom-in}
+.thumb button{position:absolute;top:3px;right:3px;width:22px;height:22px;border-radius:50%;border:0;background:rgba(0,0,0,.6);color:#fff;font-size:14px;line-height:1;padding:0}
+button.thumb.add{display:grid;place-items:center;font-size:30px;color:var(--accent);border:2px dashed var(--line);background:transparent;padding:0;position:static;width:76px;height:76px;border-radius:12px}
+.thumb.loading::after{content:"…";position:absolute;inset:0;display:grid;place-items:center;color:var(--muted);font-size:24px}
+details.more{border:1px solid var(--line);border-radius:14px;padding:10px 14px}
+details.more summary{cursor:pointer;font-weight:600;color:var(--accent)}
+.jbtns{display:grid;grid-template-columns:1fr auto;gap:10px}.jbtns .ghost{white-space:nowrap}
+.jtiles{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:10px}
+.jtiles .kpi b{font-size:21px}
+.jtiles .kpi span{display:block;font-size:12px;color:var(--muted)}
+.jbars{display:flex;flex-direction:column;gap:9px}
+.jbar{display:grid;grid-template-columns:minmax(0,1.3fr) minmax(0,1fr) auto;gap:10px;align-items:center;font-size:13.5px}
+.jl{overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.jt{height:10px;background:var(--sunk);border-radius:99px;overflow:hidden}
+.jt i{display:block;height:100%;border-radius:99px}
+.jbar b{font-family:var(--mono);font-variant-numeric:tabular-nums;font-size:13px}
 @media (prefers-reduced-motion:reduce){*{transition:none!important;animation:none!important}}
 </style>
 
@@ -215,11 +251,12 @@ textarea{min-height:72px;resize:vertical}
   <button data-tab="today" type="button"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="4" width="18" height="17" rx="3"/><path d="M3 9h18M8 2v4M16 2v4"/></svg>Today</button>
   <button data-tab="tasks" type="button"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 6h11M9 12h11M9 18h11"/><path d="m3 6 1.5 1.5L7 5M3 12l1.5 1.5L7 11M3 18l1.5 1.5L7 17"/></svg>Tasks</button>
   <button data-tab="numbers" type="button"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 20V10M10 20V4M16 20v-7M22 20H2"/></svg>Numbers</button>
-  <button data-tab="playbook" type="button"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 4h12a4 4 0 0 1 4 4v12H8a4 4 0 0 1-4-4z"/><path d="M8 9h8M8 13h6"/></svg>Playbook</button>
+  <button data-tab="journal" type="button"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 4h12a4 4 0 0 1 4 4v12H8a4 4 0 0 1-4-4z"/><path d="M8 9h8M8 13h6"/></svg>Journal</button>
   <button data-tab="settings" type="button"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.7 1.7 0 0 0 .3 1.8l.1.1a2 2 0 1 1-2.8 2.8l-.1-.1a1.7 1.7 0 0 0-1.8-.3 1.7 1.7 0 0 0-1 1.5V21a2 2 0 1 1-4 0v-.1a1.7 1.7 0 0 0-1.1-1.5 1.7 1.7 0 0 0-1.8.3l-.1.1a2 2 0 1 1-2.8-2.8l.1-.1a1.7 1.7 0 0 0 .3-1.8 1.7 1.7 0 0 0-1.5-1H3a2 2 0 1 1 0-4h.1a1.7 1.7 0 0 0 1.5-1.1 1.7 1.7 0 0 0-.3-1.8l-.1-.1a2 2 0 1 1 2.8-2.8l.1.1a1.7 1.7 0 0 0 1.8.3H9a1.7 1.7 0 0 0 1-1.5V3a2 2 0 1 1 4 0v.1a1.7 1.7 0 0 0 1 1.5 1.7 1.7 0 0 0 1.8-.3l.1-.1a2 2 0 1 1 2.8 2.8l-.1.1a1.7 1.7 0 0 0-.3 1.8V9a1.7 1.7 0 0 0 1.5 1H21a2 2 0 1 1 0 4h-.1a1.7 1.7 0 0 0-1.5 1z"/></svg>Settings</button>
 </nav></div>
 <div class="toast" id="toast" hidden></div>
 <input type="file" id="photoIn" accept="image/*" capture="environment" hidden>
+<input type="file" id="jPhotoIn" accept="image/*" multiple hidden>
 <div class="sheet-back" id="sheet" hidden><div class="sheet" role="dialog" aria-label="Task details"></div></div>
 <div class="lightbox" id="lb" hidden role="dialog" aria-label="Proof photo"><img id="lbImg" alt=""><p id="lbCap"></p><button type="button" id="lbClose">Close</button></div>
 
@@ -379,6 +416,198 @@ function openTask(id){
   draw(); sh.hidden = false; document.body.style.overflow = "hidden";
 }
 
+
+/* ---------- journal ---------- */
+const MOODS = ["Calm","Confident","Motivated","Happy","Anxious","Frustrated","Bored","Tired"];
+const JPRESETS = {
+  trader:{label:"Trading", entry:"trade", money:true, result:"Profit or loss (£)", what:"Instrument", what2:"Setup", trade:true, tagLabel:"Any mistakes?", notesPh:"e.g. Took it too early, should have waited for the retest",
+    tags:["Moved stop","No stop","Revenge trade","Overtrading","FOMO entry","Chased price","Cut winner early","Held loser too long","Oversized","Off-plan setup","Traded news","Ignored daily limit"]},
+  creator:{label:"Content", entry:"video", money:true, result:"Money made from it (£)", what:"Video or post", what2:"Views", tagLabel:"What held it back?", notesPh:"e.g. Hook was slow, the before/after got the most comments",
+    tags:["Weak hook","Too long","Posted at a bad time","No call to action","Bad lighting or sound","Off-niche topic","Rushed the edit","Didn't reply to comments"]},
+  ecom:{label:"Online store", entry:"product test", money:true, result:"Profit (£)", what:"Product or ad", what2:"Ad spend", tagLabel:"What held it back?", notesPh:"e.g. CTR was fine but the store page lost them",
+    tags:["Weak creative","Wrong audience","Price too high","Poor store page","Slow shipping","Scaled too fast","Killed the ad too early","No product research"]},
+  freelancer:{label:"Freelance", entry:"job", money:true, result:"Earned (£)", what:"Client or order", what2:"Platform", tagLabel:"What went wrong?", notesPh:"e.g. Asked for examples upfront, saved two revisions",
+    tags:["Late delivery","Unclear brief","Underpriced","Scope creep","Slow reply","Too many revisions","Skipped the requirements","Didn't ask for a review"]},
+  owner:{label:"Business", entry:"sale or campaign", money:true, result:"Revenue (£)", what:"Offer or campaign", what2:"Leads", tagLabel:"What held it back?", notesPh:"e.g. A deadline doubled the replies",
+    tags:["No follow-up","Weak offer","Wrong audience","Priced too low","Ignored the data","Launched without testing","Overcomplicated it","Didn't ask for the sale"]},
+  starter:{label:"Work session", entry:"work session", money:true, result:"Money made (£)", what:"What I worked on", what2:"Time spent", tagLabel:"What got in the way?", notesPh:"e.g. Phone in another room = twice as much done",
+    tags:["Got distracted","Started late","No clear goal","Gave up too early","Overthinking","Didn't ask for help","Spent money too fast","Skipped the session"]},
+  diary:{label:"Daily diary", entry:"day", money:false, result:"Money made today (£)", what:"Best thing today", what2:"Hours worked", planQ:"Did you stick to your routine?", tagLabel:"What got in the way?", notesPh:"e.g. Woke up on time, gym done, felt sharp all day",
+    tags:["Phone scrolling","Slept badly","Skipped the gym","Ate badly","Procrastinated","Stayed up late","Overthinking","Too many distractions"]}
+};
+const JBASE = {money:true, plan:true, planQ:"Did you follow your plan?", photos:true, mood:true, grade:true, trade:false, notesPh:"What happened, what you learned"};
+function jcfg(){
+  const c = Object.assign({}, JBASE, JPRESETS[S.profile.path] || JPRESETS.starter, S.jcfg || {});
+  c.tags = c.tags || []; c.cap = (c.entry || "entry").replace(/^./, m => m.toUpperCase()); return c;
+}
+let jView = "entries", jPeriod = "all";
+const money2 = v => (v < 0 ? "−£" : "£") + Math.abs(v).toLocaleString("en-GB", {maximumFractionDigits:2});
+const signed = v => (v > 0 ? "+" : "") + money2(v);
+const isNum = v => typeof v === "number" && !isNaN(v);
+const prettyDayLong = k => { const [y,m,d] = k.split("-").map(Number); return new Date(y, m-1, d).toLocaleDateString("en-GB", {weekday:"short", day:"numeric", month:"short"}); };
+function jEntries(){ S.journal = S.journal || []; return S.journal; }
+function jSeg(){ return `<div class="seg3" role="tablist" aria-label="Journal">${[["entries","Entries"],["stats","Stats"],["playbook","Playbook"]].map(([v,l]) => `<button type="button" role="tab" data-jv="${v}" aria-selected="${jView===v}">${l}</button>`).join("")}</div>`; }
+function wireJSeg(A){ A.querySelectorAll("[data-jv]").forEach(b => b.onclick = () => { jView = b.dataset.jv; renderApp(); window.scrollTo(0,0); }); }
+
+function jRow(e, cfg){
+  const src = cfg.photos && e.photos && e.photos.length ? photoSrc({photo:e.photos[0]}) : null, r = cfg.money && isNum(e.result);
+  const title = (cfg.what && e.what) || (cfg.trade && e.side ? e.side : cfg.cap);
+  return `<li class="trow"><button class="tbody jrow" type="button" data-je="${e.id}" aria-label="Open entry: ${esc(title)}"><span class="jtop"><span class="ttext">${esc(title)}${cfg.what2 && e.what2 ? ` <span class="muted" style="font-weight:500">· ${esc(e.what2)}</span>` : ""}</span>${r ? `<b class="${e.result>0?"pos":e.result<0?"neg":""}">${signed(e.result)}</b>` : ""}</span>
+    <span class="tmeta">${e.time ? `<em>${esc(e.time)}</em>` : ""}${cfg.plan ? `<em class="${e.plan===false?"late":""}">${e.plan===false?"Off plan":"On plan"}</em>` : ""}${(e.tags||[]).map(t => `<em class="flag">${esc(t)}</em>`).join("")}${cfg.grade && e.grade ? `<em>Grade ${esc(e.grade)}</em>` : ""}${cfg.mood && e.mood ? `<em>${esc(e.mood)}</em>` : ""}</span>
+    ${e.notes ? `<span class="jnote">${esc(e.notes)}</span>` : ""}</button>${src ? `<img class="proof" src="${esc(src)}" alt="">` : ""}</li>`;
+}
+function renderJournalEntries(A){
+  const cfg = jcfg(), list = jEntries().slice().sort((a,b) => (b.date+(b.time||"")).localeCompare(a.date+(a.time||"")));
+  const byDay = {}; list.forEach(e => (byDay[e.date] = byDay[e.date] || []).push(e));
+  A.innerHTML = header() + jSeg() + `<div class="jbtns"><button class="btn" type="button" id="jNew">+ Log a ${esc(cfg.entry)}</button><button class="ghost" type="button" id="jCust" aria-label="Customise your journal">✎ Customise</button></div>` +
+    (list.length ? Object.keys(byDay).map(k => { const es = byDay[k], hasR = cfg.money && es.some(e => isNum(e.result)), tot = es.reduce((x,e) => x + (isNum(e.result) ? e.result : 0), 0);
+      return `<div class="card"><div class="cardhead"><h2>${prettyDayLong(k)}</h2>${hasR ? `<b class="${tot>0?"pos":tot<0?"neg":""}">${signed(tot)}</b>` : ""}</div><ul class="tlist">${es.map(e => jRow(e, cfg)).join("")}</ul></div>`; }).join("")
+    : `<div class="empty">No entries yet. Log each ${esc(cfg.entry)}: how it went, what got in the way and a photo. After a few weeks, Stats shows you what's helping and what's holding you back.<br><br>Not a ${esc(cfg.entry)}? Tap <b>Customise</b> to turn it into a daily diary, rename the questions or pick your own tags.</div>`);
+  wireJSeg(A);
+  A.querySelector("#jNew").onclick = () => openEntry(null);
+  A.querySelector("#jCust").onclick = openJCustom;
+  A.querySelectorAll("[data-je]").forEach(b => b.onclick = () => openEntry(b.dataset.je));
+}
+function grp(list, fn){ const m = new Map(); list.forEach(e => [].concat(fn(e)).forEach(k => { if (!k) return; const g = m.get(k) || {k, v:0, n:0, w:0}; if (isNum(e.result)) { g.v += e.result; if (e.result > 0) g.w++; } g.n++; m.set(k, g); })); return [...m.values()]; }
+function jBars(rows, byCount, empty){
+  if (!rows.length) return `<p class="muted" style="font-size:14px">${empty}</p>`;
+  const max = Math.max(...rows.map(r => Math.abs(byCount ? r.n : r.v)), 1);
+  return `<div class="jbars">${rows.map(r => { const val = byCount ? r.n : r.v, w = Math.abs(val) / max * 100;
+    return `<div class="jbar"><span class="jl">${esc(r.k)} <small class="muted">${r.n}×</small></span><span class="jt"><i style="width:${w}%;background:${byCount ? "var(--accent)" : val < 0 ? "var(--loss)" : "var(--gain)"}"></i></span><b class="${byCount ? "" : val < 0 ? "neg" : val > 0 ? "pos" : ""}">${byCount ? r.n : signed(val)}</b></div>`; }).join("")}</div>`;
+}
+function jCurve(list){
+  const pts = [0]; let c = 0; list.forEach(e => { if (isNum(e.result)) { c += e.result; pts.push(c); } });
+  if (pts.length < 3) return `<div class="empty">Log at least two entries with an amount to see your running total.</div>`;
+  const W = 400, H = 170, pl = 52, pr = 8, pt = 10, pb = 12, mn = Math.min(0, ...pts), mx = Math.max(0, ...pts), sp = (mx - mn) || 1;
+  const x = i => pl + i / (pts.length - 1) * (W - pl - pr), y = v => pt + (mx - v) / sp * (H - pt - pb);
+  const line = pts.map((v,i) => `${i ? "L" : "M"}${x(i).toFixed(1)},${y(v).toFixed(1)}`).join(""), end = pts[pts.length-1], col = end >= 0 ? "var(--gain)" : "var(--loss)";
+  return `<div class="chart"><svg viewBox="0 0 ${W} ${H}" role="img" aria-label="Running total, ending at ${signed(end)}">${[mx,0,mn].filter((v,i,a) => a.indexOf(v) === i).map(v => `<line x1="${pl}" x2="${W-pr}" y1="${y(v)}" y2="${y(v)}" stroke="var(--line)" ${v === 0 ? "" : 'stroke-dasharray="3 4"'}/><text x="${pl-6}" y="${y(v)+4}" text-anchor="end">${money2(Math.round(v))}</text>`).join("")}<path d="${line}L${x(pts.length-1).toFixed(1)},${y(0).toFixed(1)}L${x(0).toFixed(1)},${y(0).toFixed(1)}Z" fill="${col}" fill-opacity=".12"/><path d="${line}" fill="none" stroke="${col}" stroke-width="2.5" stroke-linejoin="round"/><circle cx="${x(pts.length-1)}" cy="${y(end)}" r="4" fill="${col}"/></svg></div>`;
+}
+function renderJournalStats(A){
+  const cfg = jcfg(); let list = jEntries().slice();
+  if (jPeriod !== "all") { const from = addDays(-Number(jPeriod) + 1); list = list.filter(e => e.date >= from); }
+  list.sort((a,b) => (a.date+(a.time||"")).localeCompare(b.date+(b.time||"")));
+  const withR = cfg.money ? list.filter(e => isNum(e.result)) : [], wins = withR.filter(e => e.result > 0), losses = withR.filter(e => e.result < 0);
+  const gw = wins.reduce((x,e) => x + e.result, 0), gl = losses.reduce((x,e) => x + e.result, 0), net = gw + gl;
+  const followed = list.filter(e => e.plan !== false).length, tagged = list.filter(e => (e.tags||[]).length).length;
+  const rs = list.filter(e => isNum(e.r)).map(e => e.r), pct = (a,b) => b ? Math.round(a / b * 100) + "%" : "—";
+  const moods = grp(list, e => e.mood).sort((a,b) => b.n - a.n);
+  const tile = (label, val, sub, cl) => `<div class="kpi"><small>${label}</small><b class="${cl||""}">${val}</b>${sub ? `<span>${sub}</span>` : ""}</div>`;
+  const tiles = [tile(esc(cfg.cap) + "s logged", list.length, "")];
+  if (cfg.money) tiles.unshift(tile("Net result", withR.length ? signed(net) : "—", "", net > 0 ? "pos" : net < 0 ? "neg" : ""));
+  if (cfg.money) tiles.push(tile("Win rate", pct(wins.length, withR.length), withR.length ? `${wins.length} up · ${losses.length} down` : ""));
+  if (cfg.plan) tiles.push(tile(/plan/i.test(cfg.planQ) ? "On plan" : "Answered yes", pct(followed, list.length), "", list.length && followed / list.length < .8 ? "neg" : ""));
+  if (cfg.money) tiles.push(tile("Average per " + esc(cfg.entry), withR.length ? signed(net / withR.length) : "—", ""));
+  if (cfg.tags.length) tiles.push(tile("Had a setback", pct(tagged, list.length), "", list.length && tagged / list.length > .3 ? "neg" : ""));
+  if (cfg.mood) tiles.push(tile("Usual feeling", moods.length ? esc(moods[0].k) : "—", ""));
+  if (cfg.trade && cfg.money) tiles.push(tile("Profit factor", gl ? (gw / Math.abs(gl)).toFixed(2) : (gw ? "∞" : "—"), ""), tile("Avg win / avg loss", wins.length && losses.length ? (gw / wins.length / Math.abs(gl / losses.length)).toFixed(2) : "—", wins.length ? `${money2(gw / wins.length)} / ${losses.length ? money2(gl / losses.length) : "—"}` : ""));
+  if (cfg.trade) tiles.push(tile("Average R", rs.length ? (rs.reduce((a,b) => a + b, 0) / rs.length).toFixed(2) + "R" : "—", ""));
+  if (tiles.length % 2) tiles.push(tile("This week", list.filter(e => e.date >= addDays(-6)).length, "entries"));
+  const byCount = withR.length === 0;
+  const sortB = (a,b) => byCount ? b.n - a.n : a.v - b.v, sortG = (a,b) => byCount ? b.n - a.n : b.v - a.v;
+  A.innerHTML = header() + jSeg() + `
+    <div class="seg three" role="group" aria-label="Period">${[["all","All time"],["30","30 days"],["7","7 days"]].map(([v,l]) => `<button type="button" data-jp="${v}" aria-pressed="${jPeriod===v}">${l}</button>`).join("")}</div>
+    <div class="card set"><h2>Your numbers</h2><div class="jtiles">${tiles.join("")}</div></div>
+    ${cfg.money ? `<div class="card set"><h2>Running total</h2>${jCurve(list)}</div>` : ""}
+    ${cfg.tags.length ? `<div class="card set"><h2>${byCount ? "What gets in the way most" : "What your setbacks cost"}</h2><p class="muted" style="font-size:13.5px">${byCount ? "How often each one comes up. The longest bar is the habit to work on first." : "The total result of every " + esc(cfg.entry) + " where each one happened. The longest red bar is the habit to fix first."}</p>
+      ${jBars(grp(list, e => e.tags || []).sort(sortB), byCount, "Nothing tagged yet. Tap the tags on each entry so this can show you the pattern.")}</div>` : ""}
+    ${cfg.plan || cfg.mood ? `<div class="card set">${cfg.plan ? `<h2>${esc(cfg.planQ)}</h2>${jBars(grp(list, e => e.plan === false ? "No" : "Yes"), byCount, "Nothing logged yet.")}` : ""}
+      ${cfg.mood ? `<h3 style="font-size:15px;margin-top:6px">By how you felt</h3>${jBars(moods.slice().sort(sortG), byCount, "Pick a feeling on your entries to see how it affects you.")}` : ""}</div>` : ""}
+    ${cfg.what2 && cfg.trade ? `<div class="card set"><h2>By ${esc(cfg.what2.toLowerCase())}</h2>${jBars(grp(list, e => e.what2 || "").sort(sortG).slice(0, 8), byCount, "Fill in " + esc(cfg.what2.toLowerCase()) + " to compare them.")}</div>`
+        : cfg.what && cfg.money ? `<div class="card set"><h2>By ${esc(cfg.what.toLowerCase())}</h2>${jBars(grp(list, e => e.what || "").sort(sortG).slice(0, 8), byCount, "Fill in " + esc(cfg.what.toLowerCase()) + " to compare them.")}</div>` : ""}`;
+  wireJSeg(A);
+  A.querySelectorAll("[data-jp]").forEach(b => b.onclick = () => { jPeriod = b.dataset.jp; renderApp(); });
+}
+function openSheet(){ const sh = document.getElementById("sheet"); sh.onclick = null; sh.hidden = false; document.body.style.overflow = "hidden"; return sh.querySelector(".sheet"); }
+function closeSheet(){ document.getElementById("sheet").hidden = true; document.body.style.overflow = ""; renderApp(); }
+function openJCustom(){
+  const c = jcfg(), box = openSheet(), q = sel => box.querySelector(sel);
+  const sw = (id, on, title, sub) => `<div class="setrow"><div><b>${title}</b>${sub ? `<p class="muted">${sub}</p>` : ""}</div><button type="button" class="switch" data-sw="${id}" role="switch" aria-checked="${!!on}" aria-label="${title}"><i></i></button></div>`;
+  const read = () => { if (!q("#cEntry")) return; c.entry = q("#cEntry").value.trim() || "entry"; c.result = q("#cResult").value.trim() || "Amount (£)"; c.what = q("#cWhat").value.trim(); c.what2 = q("#cWhat2").value.trim(); c.planQ = q("#cPlanQ").value.trim() || "Did you follow your plan?"; c.tagLabel = q("#cTagLabel").value.trim() || "What got in the way?"; };
+  const draw = () => {
+    box.innerHTML = `<div class="grab" aria-hidden="true"></div><h2>Make it your journal</h2>
+      <p class="muted" style="font-size:14px;margin-top:-6px">Change anything below. Your entries are kept.</p>
+      <div class="field"><span class="flabel">Start from a template</span><div class="chips">${Object.entries(JPRESETS).map(([k,v]) => `<button type="button" class="chipb" data-preset="${k}">${v.label}</button>`).join("")}</div></div>
+      <div class="field"><label for="cEntry">What do you log each time?</label><input type="text" id="cEntry" value="${esc(c.entry)}" placeholder="e.g. day, trade, video, workout"></div>
+      ${sw("money", c.money, "Track money", "Profit, earnings or spend for each entry")}
+      ${c.money ? `<div class="field"><label for="cResult">Money question</label><input type="text" id="cResult" value="${esc(c.result)}"></div>` : `<input type="hidden" id="cResult" value="${esc(c.result)}">`}
+      <div class="nums"><div class="field"><label for="cWhat">Question 1</label><input type="text" id="cWhat" value="${esc(c.what)}" placeholder="Leave empty to hide"></div><div class="field"><label for="cWhat2">Question 2</label><input type="text" id="cWhat2" value="${esc(c.what2)}" placeholder="Leave empty to hide"></div></div>
+      ${sw("plan", c.plan, "Yes / no question", "Good for staying on track")}
+      ${c.plan ? `<div class="field"><label for="cPlanQ">The question</label><input type="text" id="cPlanQ" value="${esc(c.planQ)}"></div>` : `<input type="hidden" id="cPlanQ" value="${esc(c.planQ)}">`}
+      <div class="field"><label for="cTagLabel">Tags heading</label><input type="text" id="cTagLabel" value="${esc(c.tagLabel)}"></div>
+      <div class="field"><span class="flabel">Your tags <span class="muted" style="font-weight:500">Tap × to remove</span></span>
+        <div class="chips">${c.tags.map((t,i) => `<span class="chipb" style="display:inline-flex;gap:6px;align-items:center">${esc(t)}<button type="button" data-rmtag="${i}" aria-label="Remove ${esc(t)}" style="border:0;background:none;padding:0 2px;font-size:16px;color:var(--muted)">×</button></span>`).join("") || `<span class="muted" style="font-size:14px">No tags. Add one below, or leave empty to hide tags.</span>`}</div>
+        <form id="cTagForm" class="nums" style="grid-template-columns:1fr auto;margin-top:8px"><input type="text" id="cTagIn" placeholder="Add a tag, e.g. Skipped breakfast" maxlength="40"><button type="submit" class="ghost">Add</button></form></div>
+      ${sw("photos", c.photos, "Photos and screenshots")}
+      ${sw("mood", c.mood, "How you felt")}
+      ${sw("grade", c.grade, "Grade it A / B / C")}
+      ${sw("trade", c.trade, "Trading details", "Long or short, R multiple, lots")}
+      <button type="button" class="btn" id="cSave">Save</button>
+      <button type="button" class="ghost" id="cReset">Go back to the default</button>
+      <button type="button" class="ghost" id="cCancel">Cancel</button>`;
+    box.querySelectorAll("[data-sw]").forEach(b => b.onclick = () => { read(); c[b.dataset.sw] = !c[b.dataset.sw]; draw(); });
+    box.querySelectorAll("[data-preset]").forEach(b => b.onclick = () => { Object.assign(c, JBASE, JPRESETS[b.dataset.preset]); c.tags = [...c.tags]; c.cap = c.entry; draw(); toast(JPRESETS[b.dataset.preset].label + " template loaded. Tap Save to keep it."); });
+    box.querySelectorAll("[data-rmtag]").forEach(b => b.onclick = () => { read(); c.tags.splice(Number(b.dataset.rmtag), 1); draw(); });
+    q("#cTagForm").onsubmit = ev => { ev.preventDefault(); const v = q("#cTagIn").value.trim(); if (!v) return; read(); if (!c.tags.includes(v)) c.tags.push(v); draw(); q("#cTagIn").focus(); };
+    q("#cSave").onclick = () => { read(); const {cap, label, ...keep} = c; S.jcfg = keep; persist(); closeSheet(); toast("Journal updated"); };
+    q("#cReset").onclick = () => { delete S.jcfg; persist(); closeSheet(); toast("Back to the default"); };
+    q("#cCancel").onclick = closeSheet;
+  };
+  draw();
+}
+function openEntry(id){
+  const cfg = jcfg(), existing = id ? jEntries().find(e => e.id === id) : null;
+  const e = existing ? JSON.parse(JSON.stringify(existing)) : {id:"j"+Date.now(), date:keyOf(new Date()), time:"", result:"", what:"", what2:"", plan:true, tags:[], mood:"", grade:"", notes:"", photos:[], side:"Long", r:"", size:""};
+  e.tags = e.tags || []; e.photos = e.photos || [];
+  const box = openSheet(), q = sel => box.querySelector(sel), val = sel => q(sel) ? q(sel).value : null;
+  let uploading = 0, moreOpen = !!(existing && (existing.grade || (existing.r !== "" && existing.r != null))), armed = false;
+  const read = () => { if (!q("#jDate")) return; const rv = val("#jRes"); if (rv !== null) e.result = rv === "" ? "" : Number(rv); e.date = val("#jDate") || e.date; e.time = val("#jTime");
+    if (q("#jWhat")) e.what = val("#jWhat").trim(); if (q("#jWhat2")) e.what2 = val("#jWhat2").trim(); e.notes = val("#jNotes"); if (q("#jMood")) e.mood = val("#jMood"); if (q("#jGrade")) e.grade = val("#jGrade");
+    if (q("#jR")) { const r = val("#jR"), z = val("#jSize"); e.r = r === "" ? "" : Number(r); e.size = z === "" ? "" : Number(z); } };
+  const more = cfg.grade || cfg.trade;
+  const draw = () => {
+    box.innerHTML = `<div class="grab" aria-hidden="true"></div><h2>${existing ? "Edit" : "Log a"} ${esc(cfg.entry)}</h2>
+      ${cfg.money ? `<div class="field"><label for="jRes">${esc(cfg.result)}</label><input type="number" step="any" inputmode="decimal" id="jRes" class="bigin" value="${esc(e.result)}" placeholder="${cfg.trade ? "e.g. 480 or -250" : "e.g. 120, or leave empty"}"></div>` : ""}
+      <div class="nums"><div class="field"><label for="jDate">Date</label><input type="date" id="jDate" value="${esc(e.date)}"></div><div class="field"><label for="jTime">Time</label><input type="time" id="jTime" value="${esc(e.time)}"></div></div>
+      ${cfg.what || cfg.what2 ? `<div class="nums">${cfg.what ? `<div class="field"><label for="jWhat">${esc(cfg.what)}</label><input type="text" id="jWhat" value="${esc(e.what)}"></div>` : ""}${cfg.what2 ? `<div class="field"><label for="jWhat2">${esc(cfg.what2)}</label><input type="text" id="jWhat2" value="${esc(e.what2)}"></div>` : ""}</div>` : ""}
+      ${cfg.plan ? `<div class="field"><span class="flabel">${esc(cfg.planQ)}</span><div class="seg"><button type="button" data-plan="1" aria-pressed="${e.plan !== false}">Yes</button><button type="button" data-plan="0" aria-pressed="${e.plan === false}">No</button></div></div>` : ""}
+      ${cfg.mood ? `<div class="field"><span class="flabel">How did you feel?</span><div class="chips">${MOODS.map(m => `<button type="button" class="chipb" data-mood="${m}" aria-pressed="${e.mood === m}">${m}</button>`).join("")}</div></div>` : ""}
+      ${cfg.tags.length ? `<div class="field"><span class="flabel">${esc(cfg.tagLabel)} <span class="muted" style="font-weight:500">Tap all that apply</span></span><div class="chips">${cfg.tags.map(t => `<button type="button" class="chipb" data-tag="${esc(t)}" aria-pressed="${e.tags.includes(t)}">${esc(t)}</button>`).join("")}</div></div>` : ""}
+      ${cfg.photos ? `<div class="field"><span class="flabel">Photos or screenshots</span><div class="thumbs">${e.photos.map((ph,i) => { const src = photoSrc({photo:ph}); return src ? `<span class="thumb"><img src="${esc(src)}" alt="Photo ${i+1}" data-vph="${i}"><button type="button" data-rmph="${i}" aria-label="Remove photo">×</button></span>` : ""; }).join("")}${Array.from({length:uploading}, () => `<span class="thumb loading"></span>`).join("")}<button type="button" class="thumb add" id="jAddPh" aria-label="Add a photo">+</button></div></div>` : ""}
+      <div class="field"><label for="jNotes">Notes</label><textarea id="jNotes" placeholder="${esc(cfg.notesPh)}">${esc(e.notes)}</textarea></div>
+      ${more ? `<details class="more" id="jMore" ${moreOpen ? "open" : ""}><summary>More details</summary><div class="set" style="margin-top:12px">
+        ${cfg.trade ? `<div class="field"><span class="flabel">Direction</span><div class="seg"><button type="button" data-side="Long" aria-pressed="${e.side !== "Short"}">Long</button><button type="button" data-side="Short" aria-pressed="${e.side === "Short"}">Short</button></div></div>
+        <div class="nums"><div class="field"><label for="jR">R multiple</label><input type="number" step="any" id="jR" value="${esc(e.r)}" placeholder="e.g. 2 or -1"></div><div class="field"><label for="jSize">Contracts / lots</label><input type="number" step="any" id="jSize" value="${esc(e.size)}"></div></div>` : ""}
+        ${cfg.grade ? `<div class="field"><label for="jGrade">Grade it</label><select id="jGrade"><option value="">Choose</option>${[["A","A · nailed it"],["B","B · decent"],["C","C · not my best"]].map(([v,l]) => `<option value="${v}" ${e.grade === v ? "selected" : ""}>${l}</option>`).join("")}</select></div>` : ""}
+      </div></details>` : ""}
+      <button type="button" class="btn" id="jSave">Save entry</button>
+      ${existing ? `<button type="button" class="ghost danger" id="jDel">${armed ? "Tap again to delete" : "Delete entry"}</button>` : ""}
+      <button type="button" class="ghost" id="jCancel">Cancel</button>`;
+    if (q("#jMore")) q("#jMore").addEventListener("toggle", ev => { moreOpen = ev.target.open; });
+    box.querySelectorAll("[data-plan]").forEach(b => b.onclick = () => { read(); e.plan = b.dataset.plan === "1"; draw(); });
+    box.querySelectorAll("[data-mood]").forEach(b => b.onclick = () => { read(); e.mood = e.mood === b.dataset.mood ? "" : b.dataset.mood; draw(); });
+    box.querySelectorAll("[data-tag]").forEach(b => b.onclick = () => { const t = b.dataset.tag, on = !e.tags.includes(t); e.tags = on ? [...e.tags, t] : e.tags.filter(x => x !== t); b.setAttribute("aria-pressed", on); });
+    box.querySelectorAll("[data-side]").forEach(b => b.onclick = () => { read(); e.side = b.dataset.side; draw(); });
+    box.querySelectorAll("[data-rmph]").forEach(b => b.onclick = () => { read(); e.photos.splice(Number(b.dataset.rmph), 1); draw(); });
+    box.querySelectorAll("[data-vph]").forEach(im => im.onclick = () => openPhoto(im.src, (e.what || cfg.cap) + " · " + prettyDay(e.date)));
+    if (q("#jAddPh")) q("#jAddPh").onclick = () => { read(); const fi = document.getElementById("jPhotoIn"); fi.value = ""; fi.click(); };
+    q("#jSave").onclick = () => {
+      read();
+      if (cfg.trade && cfg.money && e.result === "") { toast("Add the profit or loss first"); q("#jRes").focus(); return; }
+      if (uploading) { toast("Wait for the photo to finish saving"); return; }
+      const list = jEntries(), i = list.findIndex(x => x.id === e.id); if (i >= 0) list[i] = e; else list.push(e);
+      persist(); closeSheet(); toast("Entry saved");
+    };
+    const del = q("#jDel"); if (del) del.onclick = () => { if (!armed) { read(); armed = true; draw(); return; } S.journal = jEntries().filter(x => x.id !== e.id); persist(); closeSheet(); toast("Entry deleted"); };
+    q("#jCancel").onclick = closeSheet;
+  };
+  document.getElementById("jPhotoIn").onchange = async ev => {
+    const files = [...(ev.target.files || [])].filter(f => f.type.startsWith("image/")); if (!files.length) return;
+    for (const f of files) { read(); uploading++; draw(); try { e.photos.push(await storePhoto(f)); } catch (err) { toast("Couldn't save that photo. Try again."); } read(); uploading--; draw(); }
+  };
+  draw();
+}
+
 /* ---------- proof photos ---------- */
 const photoURLs = {};
 const IDB = (() => {
@@ -407,6 +636,7 @@ async function toCanvas(f, max){
 }
 async function shrinkBlob(f){ const c = await toCanvas(f, 1280); return await new Promise((res, rej) => c.toBlob(b => b ? res(b) : rej(new Error("blob")), "image/jpeg", .78)); }
 async function shrinkURL(f){ const c = await toCanvas(f, 520); return c.toDataURL("image/jpeg", .6); }
+async function storePhoto(f){ const blob = await shrinkBlob(f), key = "p" + Date.now() + Math.random().toString(36).slice(2,6); await IDB.put(key, blob); photoURLs[key] = URL.createObjectURL(blob); return "i:" + key; }
 function openPhoto(src, cap){ const lb = document.getElementById("lb"); document.getElementById("lbImg").src = src; document.getElementById("lbImg").alt = cap; document.getElementById("lbCap").textContent = cap; lb.hidden = false; document.getElementById("lbClose").focus(); }
 document.getElementById("lbClose").onclick = () => { document.getElementById("lb").hidden = true; };
 document.getElementById("lb").onclick = e => { if (e.target.id === "lb") e.currentTarget.hidden = true; };
@@ -427,6 +657,7 @@ function journalEntries(){
   Object.keys(S.days || {}).sort().reverse().forEach(k => {
     const d = S.days[k]; Object.values(d.done || {}).forEach(dn => { const src = photoSrc(dn); if (src) out.push({k, src, title: dn.title || "Task", at: dn.at || 0}); });
   });
+  (S.journal || []).forEach(e => (e.photos || []).forEach(p => { const src = photoSrc({photo:p}); if (src) out.push({k:e.date, src, title:e.what || "Journal entry", at:Number(String(e.id).slice(1)) || 0}); }));
   return out.sort((a,b) => b.at - a.at);
 }
 const prettyDay = k => { const [y,m,d] = k.split("-").map(Number); return new Date(y, m-1, d).toLocaleDateString("en-GB", {day:"numeric", month:"short"}); };
@@ -510,7 +741,7 @@ function renderApp(){
         <div><h2>Your routine</h2><p class="muted">Hit 50% to keep your streak alive.</p></div></div>
       <div class="card"><div class="cardhead"><h2>Tasks for this day</h2><button class="ghost" type="button" id="editBtn">Edit</button></div>
         ${r.length ? `<ul class="routine">${r.map(x=>{ const dn = d.done?.[x.id], src = photoSrc(dn); return `<li class="slot ${dn?"done":""}"><span class="time">${esc(x.time)}</span><button class="tickb ${S.settings.proof?"":"plain"}" type="button" data-id="${x.id}" aria-pressed="${!!dn}" aria-label="${dn?"Untick":(S.settings.proof?"Take a proof photo and tick":"Tick")}: ${esc(x.title)}"></button><div><span class="lbl">${esc(x.title)}</span>${x.hint?`<small>${esc(x.hint)}</small>`:""}${src?`<button class="proofbtn" type="button" data-photo="${x.id}" aria-label="View proof photo"><img class="proof" src="${esc(src)}" alt="Proof photo for ${esc(x.title)}"></button>`:""}</div></li>`; }).join("")}</ul>` : `<div class="empty">No tasks for this day. Tap Edit to add some.</div>`}
-        <p class="muted" style="font-size:13px;margin-top:10px">${S.settings.proof ? "Tap a box to take a photo as proof. It's saved to your journal in Playbook." : "Tap a box to tick it off. Photo proof is off in Settings."}</p></div>`;
+        <p class="muted" style="font-size:13px;margin-top:10px">${S.settings.proof ? "Tap a box to take a photo as proof. It's saved under Journal, then Playbook." : "Tap a box to tick it off. Photo proof is off in Settings."}</p></div>`;
     A.querySelector("#editBtn").onclick = () => { editing = true; draft = null; renderApp(); };
     A.querySelectorAll(".tickb").forEach(b => b.onclick = () => {
       const id = b.dataset.id, dd = day(k);
@@ -613,9 +844,11 @@ function renderApp(){
     p.nums.forEach(([id]) => { A.querySelector("#n-"+id).oninput = e => { const dd = day(k); dd.nums[id] = e.target.value === "" ? "" : Number(e.target.value); clearTimeout(t); t = setTimeout(()=>{ persist(); const f = document.activeElement?.id; renderApp(); if (f) { const el = document.getElementById(f); if (el){ el.focus(); const v = el.value; el.value=""; el.value=v; } } }, 700); }; });
   }
 
-  if (tab === "playbook") {
+  if (tab === "journal" && jView === "entries") renderJournalEntries(A);
+  if (tab === "journal" && jView === "stats") renderJournalStats(A);
+  if (tab === "journal" && jView === "playbook") {
     const p = PATHS[S.profile.path];
-    A.innerHTML = header() + `
+    A.innerHTML = header() + jSeg() + `
       <div class="card" style="display:flex;flex-direction:column;gap:12px"><h2>My playbook</h2>
         <p class="muted">Every time something works, write it here. Over a few weeks this becomes your own formula.</p>
         <form id="addNote" style="display:flex;flex-direction:column;gap:8px"><textarea id="noteIn" placeholder="${esc(p.playHint)}" aria-label="What worked"></textarea><button class="btn small" type="submit" style="align-self:flex-start">Save to playbook</button></form>
@@ -628,6 +861,7 @@ function renderApp(){
       </div>`;
     const J = journalEntries();
     A.querySelectorAll("[data-j]").forEach(b => b.onclick = () => { const e = J[Number(b.dataset.j)]; openPhoto(e.src, e.title + " · " + prettyDay(e.k)); });
+    wireJSeg(A);
     A.querySelector("#addNote").onsubmit = e => { e.preventDefault(); const v = A.querySelector("#noteIn").value.trim(); if (!v) return; S.notes.unshift({id:"n"+Date.now(), text:v, date:new Date().toLocaleDateString("en-GB",{day:"numeric",month:"short",year:"numeric"})}); persist(); renderApp(); toast("Saved to playbook"); };
     A.querySelectorAll("[data-del]").forEach(b => b.onclick = () => { S.notes = S.notes.filter(x=>x.id!==b.dataset.del); persist(); renderApp(); });
   }
