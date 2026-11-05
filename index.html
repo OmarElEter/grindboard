@@ -1,0 +1,582 @@
+<!doctype html>
+<html lang="en-GB">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<meta name="description" content="A daily planner for side hustlers and aspiring entrepreneurs.">
+<meta name="theme-color" content="#f7f3ee" media="(prefers-color-scheme: light)">
+<meta name="theme-color" content="#1a1614" media="(prefers-color-scheme: dark)">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="Grindboard">
+<link rel="manifest" href="manifest.webmanifest">
+<link rel="icon" type="image/png" sizes="192x192" href="icon-192.png">
+<link rel="apple-touch-icon" href="apple-touch-icon.png">
+<style>html{-webkit-text-size-adjust:100%}body{margin:0}img{max-width:100%}[hidden]{display:none!important}
+:root{padding-top:env(safe-area-inset-top,0px)}</style>
+<title>Grindboard</title>
+
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,600;12..96,800&family=Figtree:wght@400;500;600;700&family=JetBrains+Mono:wght@500&family=Manrope:wght@400;600;800&family=Nunito:wght@400;600;800&family=Fraunces:opsz,wght@9..144,600;9..144,800&family=Outfit:wght@400;500;600&family=Space+Grotesk:wght@500;700&family=DM+Sans:wght@400;500;700&display=swap">
+<style>
+/* Layout: phone-first app shell. Onboarding cards, then a four-tab app (Today, Tasks, Numbers, Playbook) with a bottom tab bar. */
+:root{
+  --bg:#f7f3ee; --surface:#fffdfa; --sunk:#f1e8df; --ink:#2a211d; --muted:#7a6c64; --line:#e7ddd3;
+  --accent:#b5674a; --accent-ink:#ffffff; --accent-soft:#f3e1d7; --fire:#d9822b; --fire-soft:#f8e6cf;
+  --display:"Bricolage Grotesque",system-ui,sans-serif; --body:"Figtree",system-ui,sans-serif; --mono:"JetBrains Mono",ui-monospace,monospace;
+}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]){
+  --bg:#1a1614; --surface:#241f1c; --sunk:#2e2724; --ink:#f1e9e2; --muted:#ab9d94; --line:#3a322d;
+  --accent:#e0987a; --accent-ink:#2a1a12; --accent-soft:#3d2b23; --fire:#efae63; --fire-soft:#3b2c1b; color-scheme:dark}}
+:root[data-theme="dark"]{
+  --bg:#1a1614; --surface:#241f1c; --sunk:#2e2724; --ink:#f1e9e2; --muted:#ab9d94; --line:#3a322d;
+  --accent:#e0987a; --accent-ink:#2a1a12; --accent-soft:#3d2b23; --fire:#efae63; --fire-soft:#3b2c1b; color-scheme:dark}
+*{box-sizing:border-box}
+body{background:var(--bg);color:var(--ink);font-family:var(--body);font-size:var(--fs,15.5px);line-height:1.5;transition:background .25s;
+  padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px));padding-block:20px 110px}
+.app{max-width:560px;margin:0 auto;display:flex;flex-direction:column;gap:16px}
+h1,h2,h3{font-family:var(--display);margin:0;letter-spacing:-.02em;text-wrap:balance}
+h1{font-size:clamp(28px,7vw,36px);font-weight:800;line-height:1.08}
+h2{font-size:19px;font-weight:600}
+p{margin:0}
+.muted{color:var(--muted)}
+button{font:inherit;cursor:pointer;color:inherit}
+button:focus-visible,input:focus-visible,textarea:focus-visible,select:focus-visible{outline:3px solid var(--accent-soft);outline-offset:2px}
+input[type=text],input[type=number],input[type=time],textarea,select{width:100%;font:inherit;color:var(--ink);background:var(--sunk);border:1px solid transparent;border-radius:12px;padding:11px 13px}
+input:focus,textarea:focus,select:focus{border-color:var(--accent);outline:none}
+textarea{min-height:72px;resize:vertical}
+.btn{background:var(--accent);color:var(--accent-ink);border:0;border-radius:14px;padding:14px 18px;font-weight:700;font-size:16px;width:100%}
+.btn:disabled{opacity:.4;cursor:not-allowed}
+.btn.small{width:auto;padding:10px 16px;font-size:14.5px;border-radius:12px}
+.ghost{background:none;border:1px solid var(--line);border-radius:12px;padding:9px 14px;color:var(--muted);font-size:14px}
+.card{background:var(--surface);border:1px solid var(--line);border-radius:20px;padding:18px}
+.brand{font-family:var(--display);font-weight:800;font-size:18px;letter-spacing:-.02em}
+.brand span{color:var(--fire)}
+
+/* onboarding */
+.steps{display:flex;gap:6px}
+.steps i{flex:1;height:4px;border-radius:9px;background:var(--line)}
+.steps i.on{background:var(--accent)}
+.paths{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:10px}
+.path{text-align:left;background:var(--surface);border:2px solid var(--line);border-radius:18px;padding:14px;display:flex;flex-direction:column;gap:6px;min-width:0}
+.path b{font-size:15.5px;line-height:1.25}
+.path small{color:var(--muted);font-size:13px;line-height:1.35}
+.path .ico{width:38px;height:38px;border-radius:12px;display:grid;place-items:center;background:var(--sunk);font-family:var(--display);font-weight:800}
+.path[aria-pressed="true"]{border-color:var(--accent);background:var(--accent-soft)}
+.path[aria-pressed="true"] .ico{background:var(--accent);color:var(--accent-ink)}
+.field{display:flex;flex-direction:column;gap:6px}
+.field label{font-weight:600;font-size:14px}
+
+/* app header */
+.head{display:flex;justify-content:space-between;align-items:center;gap:12px}
+.streak{display:flex;align-items:center;gap:8px;background:var(--fire-soft);color:var(--fire);border-radius:999px;padding:7px 14px;font-weight:700;font-variant-numeric:tabular-nums}
+.streak svg{width:16px;height:16px}
+.hello{display:flex;flex-direction:column;gap:4px}
+.pathtag{display:inline-block;font-size:12px;letter-spacing:.08em;text-transform:uppercase;font-weight:700;color:var(--accent)}
+.daynav{display:flex;align-items:center;gap:8px}
+.daynav button{background:var(--surface);border:1px solid var(--line);border-radius:10px;width:36px;height:36px}
+.daynav span{flex:1;font-weight:600}
+
+/* progress */
+.prog{display:flex;align-items:center;gap:14px}
+.ring{position:relative;width:64px;height:64px;flex:none}
+.ring svg{transform:rotate(-90deg)}
+.ring b{position:absolute;inset:0;display:grid;place-items:center;font-size:15px;font-variant-numeric:tabular-nums}
+
+/* routine */
+.routine{list-style:none;margin:0;padding:0;display:flex;flex-direction:column}
+.slot{display:grid;grid-template-columns:52px 26px minmax(0,1fr);gap:10px;align-items:start;padding:10px 0;border-top:1px solid var(--line)}
+.slot:first-child{border-top:0}
+.time{font-family:var(--mono);font-size:12.5px;color:var(--muted);padding-top:3px}
+.tick{appearance:none;width:24px;height:24px;border-radius:8px;border:2px solid var(--accent);margin:0;cursor:pointer;display:grid;place-items:center;background:transparent}
+.tick:checked{background:var(--accent)}
+.tick:checked::after{content:"";width:6px;height:11px;border:solid var(--accent-ink);border-width:0 2.5px 2.5px 0;transform:rotate(45deg) translate(-1px,-1px)}
+.slot label{font-weight:600;cursor:pointer;display:block}
+.slot small{color:var(--muted);font-size:13.5px;display:block}
+.slot.done label{text-decoration:line-through;color:var(--muted)}
+.slot .lbl{font-weight:600;display:block}
+.slot.done .lbl{text-decoration:line-through;color:var(--muted)}
+.tickb{width:26px;height:26px;border-radius:8px;border:2px solid var(--accent);background:transparent;padding:0;display:grid;place-items:center;position:relative}
+.tickb::before{content:"";width:12px;height:10px;opacity:.55;background:var(--accent);-webkit-mask:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 20'%3E%3Cpath d='M8 2 6.5 4H3a2 2 0 0 0-2 2v11a2 2 0 0 0 2 2h18a2 2 0 0 0 2-2V6a2 2 0 0 0-2-2h-3.5L16 2zm4 5a5 5 0 1 1 0 10 5 5 0 0 1 0-10z'/%3E%3C/svg%3E") center/contain no-repeat;mask:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 20'%3E%3Cpath d='M8 2 6.5 4H3a2 2 0 0 0-2 2v11a2 2 0 0 0 2 2h18a2 2 0 0 0 2-2V6a2 2 0 0 0-2-2h-3.5L16 2zm4 5a5 5 0 1 1 0 10 5 5 0 0 1 0-10z'/%3E%3C/svg%3E") center/contain no-repeat}
+.tickb[aria-pressed="true"]{background:var(--accent)}
+.tickb[aria-pressed="true"]::before{opacity:1;width:6px;height:11px;background:none;-webkit-mask:none;mask:none;border:solid var(--accent-ink);border-width:0 2.5px 2.5px 0;transform:rotate(45deg) translate(-1px,-1px)}
+.proofbtn{border:0;padding:0;background:none;margin-top:8px;display:block}
+.proof{width:56px;height:56px;border-radius:12px;object-fit:cover;display:block;border:2px solid var(--surface);box-shadow:0 0 0 1px var(--line)}
+.cardhead{display:flex;justify-content:space-between;align-items:center;gap:10px;margin-bottom:6px}
+.edrow{display:grid;grid-template-columns:92px minmax(0,1fr) 28px;gap:8px;align-items:start;background:var(--sunk);border-radius:14px;padding:10px}
+.edrow input{background:var(--surface)}
+.edtext{display:flex;flex-direction:column;gap:6px;min-width:0}
+.edhint{font-size:13.5px;padding:8px 12px}
+.edrow .x{background:none;border:0;color:var(--muted);font-size:22px;line-height:1;padding:8px 0}
+.journal{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:8px}
+.journal button{border:0;padding:0;background:var(--sunk);border-radius:14px;overflow:hidden;text-align:left;display:flex;flex-direction:column}
+.journal img{width:100%;aspect-ratio:1;object-fit:cover;display:block;max-width:100%}
+.journal span{font-size:11.5px;padding:6px 8px;color:var(--muted);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.lightbox{position:fixed;inset:0;background:rgba(10,8,7,.92);z-index:20;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:12px;
+  padding:calc(16px + env(safe-area-inset-top,0px)) max(16px,env(safe-area-inset-right,0px)) calc(16px + env(safe-area-inset-bottom,0px)) max(16px,env(safe-area-inset-left,0px))}
+.lightbox img{max-width:100%;max-height:72vh;border-radius:14px;object-fit:contain}
+.lightbox p{color:#f4ece6;text-align:center;margin:0}
+.lightbox button{background:#f4ece6;color:#2a211d;border:0;border-radius:12px;padding:10px 20px;font-weight:700}
+
+/* tasks */
+.addrow{display:flex;gap:8px}
+.addrow input{flex:1;min-width:0}
+.list{list-style:none;margin:0;padding:0;display:flex;flex-direction:column;gap:8px}
+.item{display:flex;gap:12px;align-items:flex-start;background:var(--sunk);border-radius:14px;padding:12px 14px}
+.item span{flex:1;min-width:0;overflow-wrap:anywhere}
+.item.done span{text-decoration:line-through;color:var(--muted)}
+.item .x{background:none;border:0;color:var(--muted);font-size:20px;line-height:1;padding:0 2px}
+.empty{color:var(--muted);font-size:14px;border:1px dashed var(--line);border-radius:14px;padding:14px}
+
+/* numbers */
+.nums{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:10px}
+.nums label{display:flex;flex-direction:column;gap:5px;font-size:13px;font-weight:600;color:var(--muted);min-width:0}
+.week{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:10px}
+.kpi{background:var(--sunk);border-radius:14px;padding:12px}
+.kpi small{display:block;font-size:11.5px;text-transform:uppercase;letter-spacing:.07em;color:var(--muted);font-weight:700}
+.kpi b{display:block;font-family:var(--display);font-size:22px;font-weight:800;font-variant-numeric:tabular-nums;overflow-wrap:anywhere}
+.chart svg{width:100%;height:auto;display:block}
+.chart text{fill:var(--muted);font-family:var(--mono);font-size:10.5px}
+.goal{height:10px;background:var(--sunk);border-radius:99px;overflow:hidden}
+.goal i{display:block;height:100%;background:linear-gradient(90deg,var(--accent),var(--fire));border-radius:99px;transition:width .4s}
+
+/* tab bar */
+.tabs{position:fixed;left:0;right:0;bottom:0;
+  padding:0 max(12px,env(safe-area-inset-right,0px)) calc(12px + env(safe-area-inset-bottom,0px)) max(12px,env(safe-area-inset-left,0px));z-index:5;pointer-events:none}
+.tabs nav{pointer-events:auto;max-width:560px;margin:0 auto;display:grid;grid-template-columns:repeat(5,minmax(0,1fr));gap:2px;padding:6px;border-radius:24px;
+  background:color-mix(in srgb,var(--surface) 84%,transparent);-webkit-backdrop-filter:blur(18px) saturate(1.4);backdrop-filter:blur(18px) saturate(1.4);
+  border:1px solid var(--line);box-shadow:0 12px 32px rgba(20,10,5,.14)}
+.tabs button{background:none;border:0;border-radius:18px;padding:8px 2px;display:flex;flex-direction:column;align-items:center;gap:3px;font-size:11px;font-weight:600;color:var(--muted);transition:background .2s,color .2s;min-width:0}
+.card{box-shadow:0 1px 2px rgba(20,10,5,.04)}
+/* settings */
+.set{display:flex;flex-direction:column;gap:12px}
+.swatches{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:10px}
+[hidden]{display:none!important}
+.sw{background:var(--sunk);border:2px solid transparent;border-radius:16px;padding:12px 6px;display:flex;flex-direction:column;align-items:center;gap:8px;font-weight:600;font-size:13.5px;min-width:0;text-align:center}
+.sw i{width:34px;height:34px;border-radius:50%;flex:none;box-shadow:inset 0 0 0 2px rgba(255,255,255,.35)}
+.sw span{min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.sw[aria-pressed="true"],.fc[aria-pressed="true"]{border-color:var(--accent);background:var(--accent-soft)}
+.fonts{display:grid;grid-template-columns:repeat(auto-fill,minmax(96px,1fr));gap:10px}
+.fc{background:var(--sunk);border:2px solid transparent;border-radius:16px;padding:12px 8px;display:flex;flex-direction:column;align-items:center;gap:2px;min-width:0}
+.fc b{font-size:28px;line-height:1.1}
+.fc span{font-size:12.5px;color:var(--muted)}
+.seg{display:grid;grid-template-columns:1fr 1fr;background:var(--sunk);border-radius:14px;padding:4px;gap:4px}
+.seg button{border:0;background:none;border-radius:10px;padding:10px;font-weight:600;color:var(--muted)}
+.seg button[aria-pressed="true"]{background:var(--surface);color:var(--ink);box-shadow:0 1px 3px rgba(0,0,0,.12)}
+.setrow{display:flex;justify-content:space-between;gap:14px;align-items:center}
+.setrow p{font-size:13.5px}
+.switch{flex:none;width:54px;height:32px;border-radius:99px;border:0;background:var(--line);position:relative;padding:0;transition:background .2s}
+.switch i{position:absolute;top:3px;left:3px;width:26px;height:26px;border-radius:50%;background:#fff;box-shadow:0 1px 3px rgba(0,0,0,.3);transition:transform .2s}
+.switch[aria-checked="true"]{background:var(--accent)}
+.switch[aria-checked="true"] i{transform:translateX(22px)}
+.tickb.plain:not([aria-pressed="true"])::before{display:none}
+.tabs button svg{width:22px;height:22px}
+.tabs button[aria-current="page"]{color:var(--accent);background:var(--accent-soft)}
+.toast{position:fixed;left:50%;transform:translateX(-50%);bottom:calc(84px + env(safe-area-inset-bottom,0px));background:var(--ink);color:var(--bg);padding:10px 16px;border-radius:12px;font-size:14px;font-weight:600;z-index:6}
+@media (prefers-reduced-motion:reduce){*{transition:none!important}}
+</style>
+
+</head>
+<body>
+<style id="themeStyle"></style>
+<div class="app" id="app"></div>
+<div class="tabs" id="tabs" hidden><nav>
+  <button data-tab="today" type="button"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="4" width="18" height="17" rx="3"/><path d="M3 9h18M8 2v4M16 2v4"/></svg>Today</button>
+  <button data-tab="tasks" type="button"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 6h11M9 12h11M9 18h11"/><path d="m3 6 1.5 1.5L7 5M3 12l1.5 1.5L7 11M3 18l1.5 1.5L7 17"/></svg>Tasks</button>
+  <button data-tab="numbers" type="button"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 20V10M10 20V4M16 20v-7M22 20H2"/></svg>Numbers</button>
+  <button data-tab="playbook" type="button"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 4h12a4 4 0 0 1 4 4v12H8a4 4 0 0 1-4-4z"/><path d="M8 9h8M8 13h6"/></svg>Playbook</button>
+  <button data-tab="settings" type="button"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.7 1.7 0 0 0 .3 1.8l.1.1a2 2 0 1 1-2.8 2.8l-.1-.1a1.7 1.7 0 0 0-1.8-.3 1.7 1.7 0 0 0-1 1.5V21a2 2 0 1 1-4 0v-.1a1.7 1.7 0 0 0-1.1-1.5 1.7 1.7 0 0 0-1.8.3l-.1.1a2 2 0 1 1-2.8-2.8l.1-.1a1.7 1.7 0 0 0 .3-1.8 1.7 1.7 0 0 0-1.5-1H3a2 2 0 1 1 0-4h.1a1.7 1.7 0 0 0 1.5-1.1 1.7 1.7 0 0 0-.3-1.8l-.1-.1a2 2 0 1 1 2.8-2.8l.1.1a1.7 1.7 0 0 0 1.8.3H9a1.7 1.7 0 0 0 1-1.5V3a2 2 0 1 1 4 0v.1a1.7 1.7 0 0 0 1 1.5 1.7 1.7 0 0 0 1.8-.3l.1-.1a2 2 0 1 1 2.8 2.8l-.1.1a1.7 1.7 0 0 0-.3 1.8V9a1.7 1.7 0 0 0 1.5 1H21a2 2 0 1 1 0 4h-.1a1.7 1.7 0 0 0-1.5 1z"/></svg>Settings</button>
+</nav></div>
+<div class="toast" id="toast" hidden></div>
+<input type="file" id="photoIn" accept="image/*" capture="environment" hidden>
+<div class="lightbox" id="lb" hidden role="dialog" aria-label="Proof photo"><img id="lbImg" alt=""><p id="lbCap"></p><button type="button" id="lbClose">Close</button></div>
+
+<script>
+/* ===================== the six paths ===================== */
+// routine offsets are minutes after the person's wake-up time
+const PATHS = {
+  creator: {name:"Content creator", ico:"Cr", blurb:"TikTok, YouTube, Instagram, UGC",
+    routine:[[0,"Wake up, water, no phone for 20 min"],[30,"Gym or a walk","Move before screens"],[120,"Healthy breakfast"],[180,"Plan today's content","Hooks, scripts, shot list"],[270,"Film","Batch 2–3 videos"],[390,"Lunch break"],[450,"Edit and post"],[600,"Reply to comments and DMs"],[690,"Check analytics","Log views and money in Numbers"],[750,"Write down what worked","Add it to your Playbook"],[900,"Plan tomorrow, wind down"]],
+    tasks:["Find 3 trending sounds in my niche","Pitch 2 brands for a paid collab","Repost my best video with a new hook"],
+    nums:[["views","Views",""],["followers","New followers",""],["posts","Videos posted",""],["earn","Money made","£"]], money:"earn", playHint:"e.g. Showed the result in the first 2 seconds"},
+  ecom: {name:"E-commerce", ico:"Ec", blurb:"Shopify, dropshipping, TikTok Shop",
+    routine:[[0,"Wake up, water"],[30,"Gym or a walk"],[120,"Healthy breakfast"],[150,"Check overnight orders and messages"],[210,"Review ad results","Kill losers, scale winners"],[300,"Product research","Find 3 possible winners"],[390,"Lunch"],[450,"Make or order ad creatives"],[570,"Customer service and fulfilment"],[690,"Log sales and ad spend"],[900,"Plan tomorrow"]],
+    tasks:["Test one new product","Write 3 new ad hooks","Fix the slowest page on my store"],
+    nums:[["orders","Orders",""],["revenue","Revenue","£"],["adspend","Ad spend","£"],["profit","Profit","£"]], money:"profit", playHint:"e.g. UGC-style ad beat studio photos"},
+  freelancer: {name:"Freelancer", ico:"Fr", blurb:"Fiverr, Upwork, design, editing, writing",
+    routine:[[0,"Wake up, water"],[30,"Gym or a walk"],[120,"Healthy breakfast"],[150,"Answer client messages","Reply within the hour"],[210,"Deep work on orders"],[390,"Lunch"],[450,"Send offers to new buyers","Briefs and buyer requests"],[540,"Improve one gig or portfolio piece"],[660,"Deliver finished work"],[720,"Log earnings"],[900,"Plan tomorrow"]],
+    tasks:["Send 5 offers to buyer briefs","Add a new sample to my portfolio","Ask my last client for a review"],
+    nums:[["offers","Offers sent",""],["orders","Orders won",""],["delivered","Orders delivered",""],["earn","Money earned","£"]], money:"earn", playHint:"e.g. Replying with a quick sample won the order"},
+  trader: {name:"Forex / futures trader", ico:"Tr", blurb:"Trading journal and routine",
+    routine:[[0,"Wake up, water"],[30,"Gym or a walk","Clear head before markets"],[90,"Healthy breakfast"],[120,"Check news and economic calendar"],[150,"Mark key levels","Write the plan before the session"],[210,"Trade the session","Only setups from your plan"],[390,"Journal every trade","Entry, exit, reason, emotion"],[420,"Lunch, step away from charts"],[480,"Study: backtest or review"],[900,"Review the day, plan tomorrow"]],
+    tasks:["Write my trading rules on one page","Backtest my setup 20 times","Set a max daily loss and stick to it"],
+    nums:[["trades","Trades taken",""],["rules","Followed my plan (1–10)",""],["pnl","Profit / loss","£"],["risk","Risk per trade (%)",""]], money:"pnl", playHint:"e.g. Waiting for the retest stopped me chasing", note:"A journal only. Trading is risky and this app gives no financial advice."},
+  owner: {name:"Online business", ico:"Ob", blurb:"Coaching, digital products, agency, SaaS",
+    routine:[[0,"Wake up, water"],[30,"Gym or a walk"],[120,"Healthy breakfast"],[150,"Top 3 priorities for today"],[180,"Deep work on the one thing that grows revenue"],[330,"Sales: calls, follow-ups, DMs"],[420,"Lunch"],[480,"Marketing: post, email, content"],[600,"Admin and customer support"],[690,"Log revenue and customers"],[900,"Plan tomorrow"]],
+    tasks:["Email my list with one offer","Follow up with 5 warm leads","Write down my best customer's story"],
+    nums:[["leads","New leads",""],["customers","New customers",""],["revenue","Revenue","£"],["hours","Hours on growth",""]], money:"revenue", playHint:"e.g. A free call before the offer doubled sales"},
+  starter: {name:"Aspiring entrepreneur", ico:"Ae", blurb:"Day job now, building something on the side",
+    routine:[[0,"Wake up, water"],[30,"Gym or a walk"],[90,"Healthy breakfast"],[110,"30 minutes of learning","A course, book or video on your idea"],[150,"Day job / college"],[600,"Healthy dinner"],[660,"Build session: 90 minutes","One small step on the side hustle"],[750,"Log what you did"],[810,"Plan tomorrow, sleep on time"]],
+    tasks:["Pick ONE side hustle to test for 30 days","Talk to 3 people who'd pay for it","Make my first £1 online"],
+    nums:[["hours","Hours on my hustle",""],["outreach","People contacted",""],["learn","Minutes learning",""],["earn","Money made","£"]], money:"earn", playHint:"e.g. Working on it before the day job beat evenings"}
+};
+const ORDER = ["creator","ecom","freelancer","trader","owner","starter"];
+
+/* ===================== state & storage ===================== */
+const LSKEY = "grindboard-v1";
+let S = null;            // the whole app state
+let docRef = null;       // db doc when available
+let tab = "today";
+let viewDate = new Date();
+let onboard = {step:1, path:null, name:"", wake:"07:00", goal:""};
+
+const pad = n => String(n).padStart(2,"0");
+const keyOf = d => `${d.getFullYear()}-${pad(d.getMonth()+1)}-${pad(d.getDate())}`;
+const esc = s => String(s ?? "").replace(/[&<>"']/g, c => ({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]));
+function toast(msg){ const t = document.getElementById("toast"); t.textContent = msg; t.hidden = false; clearTimeout(toast.t); toast.t = setTimeout(()=>t.hidden=true, 1800); }
+
+let saveT = null, saving = Promise.resolve();
+function persist(){
+  // prune old days to keep the document small
+  const keys = Object.keys(S.days||{}).sort(); while (keys.length > 120) delete S.days[keys.shift()];
+  try { localStorage.setItem(LSKEY, JSON.stringify(S)); } catch (e) {}
+  if (!docRef) return;
+  clearTimeout(saveT);
+  saveT = setTimeout(() => {
+    const body = JSON.parse(JSON.stringify(S));
+    saving = saving.then(() => docRef.set(body)).catch(e => { if (e && e.code === "invalid_argument") { docRef = null; } });
+  }, 600);
+}
+
+/* ===================== onboarding ===================== */
+function renderOnboarding(){
+  document.getElementById("tabs").hidden = true;
+  const o = onboard, A = document.getElementById("app");
+  const steps = `<div class="steps">${[1,2,3].map(i=>`<i class="${i<=o.step?"on":""}"></i>`).join("")}</div>`;
+  if (o.step === 1) {
+    A.innerHTML = `<div class="brand">Grind<span>board</span></div>${steps}
+      <h1>What do you do for work?</h1><p class="muted">Pick the one closest to you. Your routine, checklist and numbers are built around it.</p>
+      <div class="paths">${ORDER.map(k=>{const p=PATHS[k];return `<button type="button" class="path" data-path="${k}" aria-pressed="${o.path===k}"><span class="ico">${p.ico}</span><b>${p.name}</b><small>${p.blurb}</small></button>`}).join("")}</div>
+      <button class="btn" id="next" type="button" ${o.path?"":"disabled"}>Continue</button>`;
+    A.querySelectorAll(".path").forEach(b => b.onclick = () => { o.path = b.dataset.path; renderOnboarding(); });
+    A.querySelector("#next").onclick = () => { o.step = 2; renderOnboarding(); };
+  } else if (o.step === 2) {
+    A.innerHTML = `<div class="brand">Grind<span>board</span></div>${steps}
+      <h1>Set up your day</h1>
+      <div class="card" style="display:flex;flex-direction:column;gap:14px">
+        <div class="field"><label for="obName">Your first name</label><input type="text" id="obName" value="${esc(o.name)}" placeholder="e.g. Omar" autocomplete="given-name"></div>
+        <div class="field"><label for="obWake">What time do you wake up?</label><input type="time" id="obWake" value="${esc(o.wake)}"></div>
+        <div class="field"><label for="obGoal">Monthly income goal from this (£)</label><input type="number" id="obGoal" min="0" inputmode="numeric" value="${esc(o.goal)}" placeholder="e.g. 1000"></div>
+      </div>
+      <button class="btn" id="next" type="button">Build my plan</button>
+      <button class="ghost" id="back" type="button">Back</button>`;
+    A.querySelector("#back").onclick = () => { o.step = 1; renderOnboarding(); };
+    A.querySelector("#next").onclick = () => {
+      o.name = A.querySelector("#obName").value.trim(); o.wake = A.querySelector("#obWake").value || "07:00"; o.goal = A.querySelector("#obGoal").value;
+      o.step = 3; renderOnboarding();
+    };
+  } else {
+    const p = PATHS[o.path];
+    A.innerHTML = `<div class="brand">Grind<span>board</span></div>${steps}
+      <h1>${o.name ? esc(o.name)+", here's" : "Here's"} your plan</h1>
+      <div class="card"><span class="pathtag">${p.name}</span>
+        <p style="margin-top:8px"><b>${p.routine.length}</b> blocks in your daily routine, starting at ${esc(o.wake)}</p>
+        <p><b>${p.tasks.length}</b> starter tasks to get moving</p>
+        <p><b>${p.nums.length}</b> numbers to track every day</p>
+        ${p.note?`<p class="muted" style="margin-top:8px;font-size:13.5px">${p.note}</p>`:""}
+      </div>
+      <p class="muted">You can change any of this later in Tasks.</p>
+      <button class="btn" id="go" type="button">Start my first day</button>`;
+    A.querySelector("#go").onclick = () => {
+      S = {profile:{name:o.name, path:o.path, wake:o.wake, goal:Number(o.goal)||0, started:keyOf(new Date())}, settings:{...DEFAULT_SETTINGS},
+           days:{}, tasks:p.tasks.map((t,i)=>({id:"t"+Date.now()+i, text:t, done:false})), notes:[]};
+      persist(); tab = "today"; renderApp(); toast("Your plan is ready");
+    };
+  }
+}
+
+/* ===================== the app ===================== */
+function baseRoutine(){
+  if (S.customRoutine) return S.customRoutine;
+  const p = PATHS[S.profile.path]; const [h,m] = (S.profile.wake||"07:00").split(":").map(Number);
+  return p.routine.map(([off,title,hint],i)=>{ const t = h*60+m+off; return {id:"r"+i, time:`${pad(Math.floor(t/60)%24)}:${pad(t%60)}`, title, hint}; });
+}
+function routineFor(k){ return (k && S.days[k] && S.days[k].routine) || baseRoutine(); }
+function day(k){ S.days[k] = S.days[k] || {done:{}, nums:{}}; S.days[k].done = S.days[k].done || {}; S.days[k].nums = S.days[k].nums || {}; return S.days[k]; }
+function dayPct(k){ const r = routineFor(k); const d = S.days[k]; if (!d || !r.length) return 0; return r.filter(x=>d.done?.[x.id]).length / r.length; }
+
+/* ---------- proof photos ---------- */
+const photoURLs = {};
+const IDB = (() => {
+  let p; const open = () => p || (p = new Promise((res, rej) => { const r = indexedDB.open("grindboard", 1); r.onupgradeneeded = () => r.result.createObjectStore("photos"); r.onsuccess = () => res(r.result); r.onerror = () => rej(r.error); }));
+  return {
+    put: (k, v) => open().then(db => new Promise((res, rej) => { const t = db.transaction("photos", "readwrite"); t.objectStore("photos").put(v, k); t.oncomplete = () => res(); t.onerror = () => rej(t.error); })),
+    all: () => open().then(db => new Promise((res, rej) => { const out = {}; const c = db.transaction("photos").objectStore("photos").openCursor(); c.onsuccess = () => { const cur = c.result; if (cur) { out[cur.key] = cur.value; cur.continue(); } else res(out); }; c.onerror = () => rej(c.error); }))
+  };
+})();
+
+let assets = null, pendingTick = null, editing = false, draft = null;
+const PHOTOKEY = "grindboard-photos";
+let photosLocal = {}; try { photosLocal = JSON.parse(localStorage.getItem(PHOTOKEY) || "{}") || {}; } catch (e) {}
+function photoSrc(dn){
+  const ref = dn && typeof dn === "object" ? dn.photo : null; if (!ref) return null;
+  if (ref.startsWith("a:")) return "/_blob/" + ref.slice(2);
+  if (ref.startsWith("l:")) return photosLocal[ref.slice(2)] || null;
+  if (ref.startsWith("i:")) return photoURLs[ref.slice(2)] || null;
+  return null;
+}
+function loadImg(f){ return new Promise((res, rej) => { const u = URL.createObjectURL(f); const i = new Image(); i.onload = () => res(i); i.onerror = rej; i.src = u; }); }
+async function toCanvas(f, max){
+  const i = await loadImg(f); const s = Math.min(1, max / Math.max(i.naturalWidth, i.naturalHeight));
+  const c = document.createElement("canvas"); c.width = Math.round(i.naturalWidth * s); c.height = Math.round(i.naturalHeight * s);
+  c.getContext("2d").drawImage(i, 0, 0, c.width, c.height); URL.revokeObjectURL(i.src); return c;
+}
+async function shrinkBlob(f){ const c = await toCanvas(f, 1280); return await new Promise((res, rej) => c.toBlob(b => b ? res(b) : rej(new Error("blob")), "image/jpeg", .78)); }
+async function shrinkURL(f){ const c = await toCanvas(f, 520); return c.toDataURL("image/jpeg", .6); }
+function openPhoto(src, cap){ const lb = document.getElementById("lb"); document.getElementById("lbImg").src = src; document.getElementById("lbImg").alt = cap; document.getElementById("lbCap").textContent = cap; lb.hidden = false; document.getElementById("lbClose").focus(); }
+document.getElementById("lbClose").onclick = () => { document.getElementById("lb").hidden = true; };
+document.getElementById("lb").onclick = e => { if (e.target.id === "lb") e.currentTarget.hidden = true; };
+document.getElementById("photoIn").onchange = async e => {
+  const f = e.target.files && e.target.files[0]; const pt = pendingTick; pendingTick = null;
+  if (!f || !pt) return;
+  toast("Saving photo…");
+  try {
+    const blob = await shrinkBlob(f), key = "p" + Date.now();
+    await IDB.put(key, blob); photoURLs[key] = URL.createObjectURL(blob);
+    const ref = "i:" + key;
+    const dd = day(pt.k); dd.done[pt.id] = {photo: ref, at: Date.now(), title: pt.title}; persist(); renderApp();
+    toast(dayPct(pt.k) === 1 ? "Full day done. Great work." : "Ticked off with proof");
+  } catch (err) { toast("Couldn't save the photo. Try again."); }
+};
+function journalEntries(){
+  const out = [];
+  Object.keys(S.days || {}).sort().reverse().forEach(k => {
+    const d = S.days[k]; Object.values(d.done || {}).forEach(dn => { const src = photoSrc(dn); if (src) out.push({k, src, title: dn.title || "Task", at: dn.at || 0}); });
+  });
+  return out.sort((a,b) => b.at - a.at);
+}
+const prettyDay = k => { const [y,m,d] = k.split("-").map(Number); return new Date(y, m-1, d).toLocaleDateString("en-GB", {day:"numeric", month:"short"}); };
+function renderEditor(A, k, nav){
+  if (!draft) draft = routineFor(k).map(x => ({...x, hint: x.hint || ""}));
+  A.innerHTML = header() + nav + `
+    <div class="card" style="display:flex;flex-direction:column;gap:12px"><h2>Edit this day's tasks</h2>
+      <ul class="list">${draft.map((x,i)=>`<li class="edrow"><input type="time" id="et-${i}" value="${esc(x.time)}" data-i="${i}" data-f="time" aria-label="Time"><div class="edtext"><input type="text" id="en-${i}" value="${esc(x.title)}" data-i="${i}" data-f="title" placeholder="Task" aria-label="Task"><input type="text" id="eh-${i}" class="edhint" value="${esc(x.hint)}" data-i="${i}" data-f="hint" placeholder="Note (optional)" aria-label="Note"></div><button class="x" type="button" data-rm="${i}" aria-label="Remove task">×</button></li>`).join("")}</ul>
+      <button class="ghost" type="button" id="edAdd">+ Add a task</button>
+      <button class="btn" type="button" id="edDay">Save for this day only</button>
+      <button class="ghost" type="button" id="edAll">Save as my routine for every day</button>
+      <button class="ghost" type="button" id="edCancel">Cancel</button>
+    </div>`;
+  A.querySelectorAll("[data-f]").forEach(inp => inp.oninput = () => { draft[inp.dataset.i][inp.dataset.f] = inp.value; });
+  A.querySelectorAll("[data-rm]").forEach(b => b.onclick = () => { draft.splice(Number(b.dataset.rm), 1); renderApp(); });
+  A.querySelector("#edAdd").onclick = () => { draft.push({id:"c"+Date.now(), time:"12:00", title:"", hint:""}); renderApp(); const el = document.getElementById("en-"+(draft.length-1)); if (el) el.focus(); };
+  const clean = () => draft.filter(x => x.title.trim()).map(x => ({id:x.id, time:x.time || "12:00", title:x.title.trim(), hint:(x.hint||"").trim()})).sort((a,b) => a.time.localeCompare(b.time));
+  const finish = msg => { editing = false; draft = null; persist(); renderApp(); toast(msg); };
+  A.querySelector("#edDay").onclick = () => { day(k).routine = clean(); finish("Saved for this day"); };
+  A.querySelector("#edAll").onclick = () => { S.customRoutine = clean(); if (S.days[k]) delete S.days[k].routine; finish("Saved as your daily routine"); };
+  A.querySelector("#edCancel").onclick = () => { editing = false; draft = null; renderApp(); };
+}
+function streak(){
+  let n = 0; const d = new Date();
+  if (dayPct(keyOf(d)) < .5) d.setDate(d.getDate()-1);   // today still counts as in progress
+  while (dayPct(keyOf(d)) >= .5) { n++; d.setDate(d.getDate()-1); }
+  return n;
+}
+function moneyIn(days){
+  const p = PATHS[S.profile.path]; let total = 0; const now = new Date();
+  for (let i = 0; i < days; i++){ const d = new Date(now); d.setDate(d.getDate()-i); total += Number(S.days[keyOf(d)]?.nums?.[p.money]) || 0; }
+  return total;
+}
+function header(){
+  const p = PATHS[S.profile.path];
+  return `<div class="head"><div class="brand">Grind<span>board</span></div>
+    <div class="streak" title="Days in a row with at least half your routine done"><svg viewBox="0 0 24 24" fill="currentColor"><path d="M12 2s5 5 5 10a5 5 0 0 1-10 0c0-2 1-3.5 1-3.5S9 11 11 11c0-4 1-9 1-9z"/></svg>${streak()} day streak</div></div>
+    <div class="hello"><span class="pathtag">${p.name}</span><h1>${greet()}${S.profile.name?", "+esc(S.profile.name):""}</h1></div>`;
+}
+function greet(){ const h = new Date().getHours(); return h < 12 ? "Good morning" : h < 18 ? "Good afternoon" : "Good evening"; }
+
+const THEMES = {
+  terracotta:{name:"Terracotta", light:{bg:"#f7f3ee",surface:"#fffdfa",sunk:"#f1e8df",line:"#e7ddd3",accent:"#b5674a",soft:"#f3e1d7",ink2:"#ffffff",fire:"#d9822b",fireSoft:"#f8e6cf"}, dark:{bg:"#1a1614",surface:"#241f1c",sunk:"#2e2724",line:"#3a322d",accent:"#e0987a",soft:"#3d2b23",ink2:"#2a1a12",fire:"#efae63",fireSoft:"#3b2c1b"}},
+  ocean:{name:"Ocean", light:{bg:"#f1f5f8",surface:"#ffffff",sunk:"#e6edf3",line:"#d9e2ea",accent:"#2563a8",soft:"#dbe8f6",ink2:"#ffffff",fire:"#0e9f9e",fireSoft:"#d5f2f1"}, dark:{bg:"#0f141a",surface:"#172029",sunk:"#1f2a35",line:"#2a3743",accent:"#6aa8ec",soft:"#1c2e44",ink2:"#0b1622",fire:"#4fd1cf",fireSoft:"#143233"}},
+  forest:{name:"Forest", light:{bg:"#f2f4ef",surface:"#ffffff",sunk:"#e8ece2",line:"#dce1d4",accent:"#2f6f4f",soft:"#dcebe1",ink2:"#ffffff",fire:"#b7791f",fireSoft:"#f6e8cf"}, dark:{bg:"#121612",surface:"#1a201a",sunk:"#232b23",line:"#2e382e",accent:"#6cc79b",soft:"#1d3428",ink2:"#0e1a14",fire:"#e3b852",fireSoft:"#352c17"}},
+  lavender:{name:"Lavender", light:{bg:"#f6f4fb",surface:"#ffffff",sunk:"#ece8f6",line:"#e0dbef",accent:"#6d4fc2",soft:"#e7e0f8",ink2:"#ffffff",fire:"#d2558f",fireSoft:"#f9dfeb"}, dark:{bg:"#15131c",surface:"#1e1b28",sunk:"#282435",line:"#343043",accent:"#a78bfa",soft:"#2c2445",ink2:"#170f2c",fire:"#f48fbf",fireSoft:"#3a1f2e"}},
+  rose:{name:"Rose", light:{bg:"#fbf3f3",surface:"#fffdfd",sunk:"#f5e6e7",line:"#ecd9db",accent:"#c2416b",soft:"#f8dde5",ink2:"#ffffff",fire:"#d9822b",fireSoft:"#f9e6d3"}, dark:{bg:"#1b1315",surface:"#251a1d",sunk:"#302226",line:"#3d2c31",accent:"#f17fa3",soft:"#43222d",ink2:"#2a0e18",fire:"#f2ad6b",fireSoft:"#3c2a1a"}},
+  mono:{name:"Mono", light:{bg:"#f4f4f3",surface:"#ffffff",sunk:"#ebebea",line:"#dedede",accent:"#1d1d1f",soft:"#e4e4e4",ink2:"#ffffff",fire:"#6b6b70",fireSoft:"#e9e9ea"}, dark:{bg:"#111111",surface:"#1a1a1a",sunk:"#242424",line:"#303030",accent:"#f2f2f2",soft:"#2e2e2e",ink2:"#111111",fire:"#b5b5b5",fireSoft:"#2a2a2a"}}
+};
+const FONTS = {
+  modern:{name:"Modern", display:"'Bricolage Grotesque',system-ui,sans-serif", body:"'Figtree',system-ui,sans-serif"},
+  clean:{name:"Clean", display:"'Manrope',system-ui,sans-serif", body:"'Manrope',system-ui,sans-serif"},
+  rounded:{name:"Rounded", display:"'Nunito',system-ui,sans-serif", body:"'Nunito',system-ui,sans-serif"},
+  bold:{name:"Bold", display:"'Space Grotesk',system-ui,sans-serif", body:"'DM Sans',system-ui,sans-serif"},
+  classic:{name:"Classic", display:"'Fraunces',Georgia,serif", body:"'Outfit',system-ui,sans-serif"}
+};
+const DEFAULT_SETTINGS = {theme:"terracotta", font:"modern", size:"normal", proof:true};
+function applySettings(){
+  const st = (S && S.settings) || DEFAULT_SETTINGS, t = THEMES[st.theme] || THEMES.terracotta, f = FONTS[st.font] || FONTS.modern;
+  const v = o => `--bg:${o.bg};--surface:${o.surface};--sunk:${o.sunk};--line:${o.line};--accent:${o.accent};--accent-soft:${o.soft};--accent-ink:${o.ink2};--fire:${o.fire};--fire-soft:${o.fireSoft};`;
+  document.getElementById("themeStyle").textContent =
+    `:root{${v(t.light)}--display:${f.display};--body:${f.body};--fs:${st.size === "large" ? "17.5px" : "15.5px"}}` +
+    `@media (prefers-color-scheme:dark){:root:not([data-theme="light"]){${v(t.dark)}}}:root[data-theme="dark"]{${v(t.dark)}}`;
+}
+
+function renderApp(){
+  if (!S.settings) S.settings = {...DEFAULT_SETTINGS};
+  applySettings();
+  document.getElementById("tabs").hidden = false;
+  document.querySelectorAll("#tabs button").forEach(b => b.setAttribute("aria-current", b.dataset.tab === tab ? "page" : "false"));
+  const A = document.getElementById("app");
+  const k = keyOf(viewDate), isToday = k === keyOf(new Date());
+  const dateLabel = (isToday ? "Today · " : "") + viewDate.toLocaleDateString("en-GB",{weekday:"short",day:"numeric",month:"short"});
+  const nav = `<div class="daynav"><button type="button" id="dPrev" aria-label="Previous day">‹</button><span>${dateLabel}</span><button type="button" id="dNext" aria-label="Next day">›</button></div>`;
+
+  if (tab === "today" && editing) { renderEditor(A, k, nav); }
+  else if (tab === "today") {
+    const r = routineFor(k), d = S.days[k] || {done:{}}, pct = dayPct(k), C = 175.9;
+    A.innerHTML = header() + nav + `
+      <div class="card prog"><div class="ring"><svg width="64" height="64" viewBox="0 0 64 64"><circle cx="32" cy="32" r="28" fill="none" stroke="var(--sunk)" stroke-width="7"/><circle cx="32" cy="32" r="28" fill="none" stroke="var(--accent)" stroke-width="7" stroke-linecap="round" stroke-dasharray="${C}" stroke-dashoffset="${C*(1-pct)}"/></svg><b>${Math.round(pct*100)}%</b></div>
+        <div><h2>Your routine</h2><p class="muted">Hit 50% to keep your streak alive.</p></div></div>
+      <div class="card"><div class="cardhead"><h2>Tasks for this day</h2><button class="ghost" type="button" id="editBtn">Edit</button></div>
+        ${r.length ? `<ul class="routine">${r.map(x=>{ const dn = d.done?.[x.id], src = photoSrc(dn); return `<li class="slot ${dn?"done":""}"><span class="time">${esc(x.time)}</span><button class="tickb ${S.settings.proof?"":"plain"}" type="button" data-id="${x.id}" aria-pressed="${!!dn}" aria-label="${dn?"Untick":(S.settings.proof?"Take a proof photo and tick":"Tick")}: ${esc(x.title)}"></button><div><span class="lbl">${esc(x.title)}</span>${x.hint?`<small>${esc(x.hint)}</small>`:""}${src?`<button class="proofbtn" type="button" data-photo="${x.id}" aria-label="View proof photo"><img class="proof" src="${esc(src)}" alt="Proof photo for ${esc(x.title)}"></button>`:""}</div></li>`; }).join("")}</ul>` : `<div class="empty">No tasks for this day. Tap Edit to add some.</div>`}
+        <p class="muted" style="font-size:13px;margin-top:10px">${S.settings.proof ? "Tap a box to take a photo as proof. It's saved to your journal in Playbook." : "Tap a box to tick it off. Photo proof is off in Settings."}</p></div>`;
+    A.querySelector("#editBtn").onclick = () => { editing = true; draft = null; renderApp(); };
+    A.querySelectorAll(".tickb").forEach(b => b.onclick = () => {
+      const id = b.dataset.id, dd = day(k);
+      if (dd.done[id]) { delete dd.done[id]; persist(); renderApp(); return; }
+      const item = r.find(x => x.id === id);
+      if (!S.settings.proof) { dd.done[id] = {at: Date.now(), title: item ? item.title : "Task"}; persist(); renderApp(); if (dayPct(k) === 1) toast("Full day done. Great work."); return; }
+      pendingTick = {k, id, title: item ? item.title : "Task"};
+      const fi = document.getElementById("photoIn"); fi.value = ""; fi.click();
+    });
+    A.querySelectorAll("[data-photo]").forEach(b => b.onclick = () => { const dn = d.done[b.dataset.photo], item = r.find(x => x.id === b.dataset.photo); openPhoto(photoSrc(dn), (item ? item.title : "Task") + " · " + prettyDay(k)); });
+  }
+
+  if (tab === "tasks") {
+    const open = S.tasks.filter(t=>!t.done), done = S.tasks.filter(t=>t.done);
+    const li = t => `<li class="item ${t.done?"done":""}"><input class="tick" type="checkbox" data-id="${t.id}" ${t.done?"checked":""} aria-label="Done"><span>${esc(t.text)}</span><button class="x" type="button" data-del="${t.id}" aria-label="Delete task">×</button></li>`;
+    A.innerHTML = header() + `
+      <div class="card" style="display:flex;flex-direction:column;gap:12px"><h2>Your tasks</h2>
+        <form class="addrow" id="addTask"><input type="text" id="taskIn" placeholder="Add a task, e.g. Film 12 BOJ videos" aria-label="New task"><button class="btn small" type="submit">Add</button></form>
+        ${open.length?`<ul class="list">${open.map(li).join("")}</ul>`:`<div class="empty">Nothing left. Add your next move above.</div>`}
+        ${done.length?`<p class="muted" style="font-size:13px;margin-top:4px">Done (${done.length})</p><ul class="list">${done.map(li).join("")}</ul>`:""}
+      </div>
+      `;
+    A.querySelector("#addTask").onsubmit = e => { e.preventDefault(); const v = A.querySelector("#taskIn").value.trim(); if (!v) return; S.tasks.unshift({id:"t"+Date.now(), text:v, done:false}); persist(); renderApp(); };
+    A.querySelectorAll(".item .tick").forEach(c => c.onchange = () => { const t = S.tasks.find(x=>x.id===c.dataset.id); t.done = c.checked; persist(); renderApp(); });
+    A.querySelectorAll("[data-del]").forEach(b => b.onclick = () => { S.tasks = S.tasks.filter(x=>x.id!==b.dataset.del); persist(); renderApp(); });
+  }
+
+  if (tab === "settings") {
+    const st = S.settings, p = S.profile;
+    A.innerHTML = header() + `
+      <div class="card set"><h2>Colour</h2>
+        <div class="swatches">${Object.entries(THEMES).map(([id,t])=>`<button type="button" class="sw" data-theme-id="${id}" aria-pressed="${st.theme===id}"><i style="background:linear-gradient(135deg,${t.light.accent},${t.light.fire})"></i><span>${t.name}</span></button>`).join("")}</div>
+      </div>
+      <div class="card set"><h2>Font</h2>
+        <div class="fonts">${Object.entries(FONTS).map(([id,f])=>`<button type="button" class="fc" data-font-id="${id}" aria-pressed="${st.font===id}"><b style="font-family:${f.display}">Aa</b><span style="font-family:${f.body}">${f.name}</span></button>`).join("")}</div>
+        <div class="seg" role="group" aria-label="Text size">${[["normal","Normal text"],["large","Large text"]].map(([v,l])=>`<button type="button" data-size="${v}" aria-pressed="${st.size===v}">${l}</button>`).join("")}</div>
+      </div>
+      <div class="card set"><h2>Photo proof</h2>
+        <div class="setrow"><div><b>Take a photo when I tick a task</b><p class="muted">Photos save to your Proof journal. Turn this off to tick tasks with one tap.</p></div>
+        <button type="button" class="switch" id="proofSw" role="switch" aria-checked="${!!st.proof}" aria-label="Take a photo when I tick a task"><i></i></button></div>
+      </div>
+      <div class="card set"><h2>Your plan</h2>
+        <p class="muted">${PATHS[p.path].name}</p>
+        <div class="field"><label for="sName">First name</label><input type="text" id="sName" value="${esc(p.name)}" autocomplete="given-name"></div>
+        <div class="nums">
+          <div class="field"><label for="sWake">Wake-up time</label><input type="time" id="sWake" value="${esc(p.wake)}"></div>
+          <div class="field"><label for="sGoal">Monthly goal (£)</label><input type="number" id="sGoal" min="0" inputmode="numeric" value="${esc(p.goal||"")}"></div>
+        </div>
+        <button class="btn small" type="button" id="sSave" style="align-self:flex-start">Save changes</button>
+      </div>
+      <div class="card set"><h2>Backup</h2>
+        <p class="muted">Your plan is saved on this phone. Download a backup to keep it safe or to move it to a new phone. Photos stay on this phone.</p>
+        <div class="addrow"><button class="btn small" id="bkDown" type="button">Download backup</button><label class="ghost" for="bkIn" style="cursor:pointer;display:inline-flex;align-items:center">Restore backup</label></div>
+        <input type="file" id="bkIn" accept="application/json,.json" hidden>
+      </div>
+      <div class="card set"><h2>Start again</h2>
+        <p class="muted">Pick a different path. This clears your routine ticks, tasks, numbers, playbook and journal.</p>
+        <button class="ghost" type="button" id="restart" style="align-self:flex-start">Change my path and start again</button>
+        <div id="confirmBox" hidden class="empty">Are you sure? This can't be undone. <div class="addrow" style="margin-top:10px"><button class="btn small" type="button" id="yes">Yes, start again</button><button class="ghost" type="button" id="no">Cancel</button></div></div>
+      </div>`;
+    const upd = patch => { S.settings = {...S.settings, ...patch}; applySettings(); persist(); renderApp(); };
+    A.querySelectorAll("[data-theme-id]").forEach(b => b.onclick = () => upd({theme: b.dataset.themeId}));
+    A.querySelectorAll("[data-font-id]").forEach(b => b.onclick = () => upd({font: b.dataset.fontId}));
+    A.querySelectorAll("[data-size]").forEach(b => b.onclick = () => upd({size: b.dataset.size}));
+    A.querySelector("#proofSw").onclick = () => { upd({proof: !S.settings.proof}); toast(S.settings.proof ? "Photo proof on" : "Photo proof off"); };
+    A.querySelector("#sSave").onclick = () => {
+      S.profile.name = A.querySelector("#sName").value.trim(); S.profile.wake = A.querySelector("#sWake").value || S.profile.wake;
+      S.profile.goal = Number(A.querySelector("#sGoal").value) || 0; persist(); renderApp(); toast("Saved");
+    };
+    A.querySelector("#bkDown").onclick = () => { const b = new Blob([JSON.stringify(S, null, 1)], {type:"application/json"}); const a = document.createElement("a"); a.href = URL.createObjectURL(b); a.download = "grindboard-backup-" + keyOf(new Date()) + ".json"; document.body.appendChild(a); a.click(); a.remove(); setTimeout(() => URL.revokeObjectURL(a.href), 3000); toast("Backup downloaded"); };
+    A.querySelector("#bkIn").onchange = async e => { const f = e.target.files && e.target.files[0]; if (!f) return; try { const d = JSON.parse(await f.text()); if (!d || !d.profile || !PATHS[d.profile.path]) throw 0; S = d; persist(); renderApp(); toast("Backup restored"); } catch (err) { toast("That file isn't a Grindboard backup"); } };
+    A.querySelector("#restart").onclick = () => { A.querySelector("#confirmBox").hidden = false; };
+    A.querySelector("#no").onclick = () => { A.querySelector("#confirmBox").hidden = true; };
+    A.querySelector("#yes").onclick = () => { S = null; try { localStorage.removeItem(LSKEY); } catch(e){} if (docRef) saving = saving.then(()=>docRef.delete()).catch(()=>{}); onboard = {step:1, path:null, name:"", wake:"07:00", goal:""}; tab = "today"; applySettings(); renderOnboarding(); };
+  }
+
+  if (tab === "numbers") {
+    const p = PATHS[S.profile.path], d = S.days[k] || {nums:{}};
+    const month = moneyIn(30), week = moneyIn(7), goal = S.profile.goal || 0;
+    const fmt = v => (v<0?"-£":"£") + Math.abs(v).toLocaleString("en-GB",{maximumFractionDigits:2});
+    A.innerHTML = header() + nav + `
+      <div class="card" style="display:flex;flex-direction:column;gap:12px"><h2>${isToday?"Today's":"This day's"} numbers</h2>
+        <div class="nums">${p.nums.map(([id,label,unit])=>`<label for="n-${id}">${label}${unit?` (${unit})`:""}<input type="number" id="n-${id}" step="any" inputmode="decimal" value="${esc(d.nums?.[id] ?? "")}" placeholder="0"></label>`).join("")}</div>
+        ${p.note?`<p class="muted" style="font-size:13px">${p.note}</p>`:""}
+      </div>
+      <div class="card" style="display:flex;flex-direction:column;gap:12px"><h2>Progress</h2>
+        <div class="week"><div class="kpi"><small>Last 7 days</small><b>${fmt(week)}</b></div><div class="kpi"><small>Last 30 days</small><b>${fmt(month)}</b></div><div class="kpi"><small>Streak</small><b>${streak()}d</b></div></div>
+        ${goal?`<div><p style="display:flex;justify-content:space-between;font-size:14px;margin-bottom:6px"><span>Monthly goal</span><b>${fmt(month)} / ${fmt(goal)}</b></p><div class="goal"><i style="width:${Math.max(0,Math.min(100,month/goal*100))}%"></i></div></div>`:""}
+        <div class="chart">${chart()}</div>
+      </div>`;
+    let t;
+    p.nums.forEach(([id]) => { A.querySelector("#n-"+id).oninput = e => { const dd = day(k); dd.nums[id] = e.target.value === "" ? "" : Number(e.target.value); clearTimeout(t); t = setTimeout(()=>{ persist(); const f = document.activeElement?.id; renderApp(); if (f) { const el = document.getElementById(f); if (el){ el.focus(); const v = el.value; el.value=""; el.value=v; } } }, 700); }; });
+  }
+
+  if (tab === "playbook") {
+    const p = PATHS[S.profile.path];
+    A.innerHTML = header() + `
+      <div class="card" style="display:flex;flex-direction:column;gap:12px"><h2>My playbook</h2>
+        <p class="muted">Every time something works, write it here. Over a few weeks this becomes your own formula.</p>
+        <form id="addNote" style="display:flex;flex-direction:column;gap:8px"><textarea id="noteIn" placeholder="${esc(p.playHint)}" aria-label="What worked"></textarea><button class="btn small" type="submit" style="align-self:flex-start">Save to playbook</button></form>
+        ${S.notes.length?`<ul class="list">${S.notes.map(n=>`<li class="item"><span>${esc(n.text)}<small class="muted" style="display:block;font-size:12px">${esc(n.date)}</small></span><button class="x" type="button" data-del="${n.id}" aria-label="Delete note">×</button></li>`).join("")}</ul>`:`<div class="empty">Your playbook is empty. Add the first thing that worked for you.</div>`}
+      </div>
+      <div class="card" style="display:flex;flex-direction:column;gap:12px"><h2>Proof journal</h2>
+        ${(() => { const j = journalEntries(); return j.length
+          ? `<p class="muted">${j.length} photo${j.length>1?"s":""} of things you got done.</p><div class="journal">${j.slice(0,90).map((e,i)=>`<button type="button" data-j="${i}" aria-label="${esc(e.title)}, ${prettyDay(e.k)}"><img src="${esc(e.src)}" alt=""><span>${prettyDay(e.k)} · ${esc(e.title)}</span></button>`).join("")}</div>`
+          : `<div class="empty">No proof photos yet. Tick a task on the Today tab and take a photo. It shows up here.</div>`; })()}
+      </div>`;
+    const J = journalEntries();
+    A.querySelectorAll("[data-j]").forEach(b => b.onclick = () => { const e = J[Number(b.dataset.j)]; openPhoto(e.src, e.title + " · " + prettyDay(e.k)); });
+    A.querySelector("#addNote").onsubmit = e => { e.preventDefault(); const v = A.querySelector("#noteIn").value.trim(); if (!v) return; S.notes.unshift({id:"n"+Date.now(), text:v, date:new Date().toLocaleDateString("en-GB",{day:"numeric",month:"short",year:"numeric"})}); persist(); renderApp(); toast("Saved to playbook"); };
+    A.querySelectorAll("[data-del]").forEach(b => b.onclick = () => { S.notes = S.notes.filter(x=>x.id!==b.dataset.del); persist(); renderApp(); });
+  }
+
+  const pv = document.getElementById("dPrev"), nx = document.getElementById("dNext");
+  if (pv) pv.onclick = () => { editing = false; draft = null; viewDate = new Date(viewDate); viewDate.setDate(viewDate.getDate()-1); renderApp(); };
+  if (nx) nx.onclick = () => { editing = false; draft = null; viewDate = new Date(viewDate); viewDate.setDate(viewDate.getDate()+1); renderApp(); };
+}
+function chart(){
+  const p = PATHS[S.profile.path], pts = [];
+  for (let i = 13; i >= 0; i--){ const d = new Date(); d.setDate(d.getDate()-i); pts.push({l: d.toLocaleDateString("en-GB",{day:"numeric"}), v: Number(S.days[keyOf(d)]?.nums?.[p.money]) || 0}); }
+  const maxV = Math.max(10, ...pts.map(x=>Math.abs(x.v))), top = Math.ceil(maxV/10)*10, hasNeg = pts.some(x=>x.v<0);
+  const W = 400, H = 150, L = 36, B = 20, T = 8, cw = (W-L-4)/14, bw = cw*.6;
+  const lo = hasNeg ? -top : 0, y = v => T + (H-T-B) * (top - v) / (top - lo);
+  let s = `<svg viewBox="0 0 ${W} ${H}" role="img" aria-label="Money over the last 14 days">`;
+  [top, hasNeg?0:top/2, lo].forEach(v => s += `<line x1="${L}" x2="${W-2}" y1="${y(v)}" y2="${y(v)}" stroke="var(--line)"/><text x="${L-5}" y="${y(v)+4}" text-anchor="end">£${v}</text>`);
+  pts.forEach((pt,i) => { const x = L + i*cw + (cw-bw)/2, y0 = y(0), y1 = y(pt.v);
+    s += `<rect x="${x}" y="${Math.min(y0,y1)}" width="${bw}" height="${Math.max(Math.abs(y1-y0), pt.v?2:0)}" rx="3" fill="${pt.v<0?"var(--fire)":"var(--accent)"}"/>`;
+    if (i % 2 === 1) s += `<text x="${x+bw/2}" y="${H-5}" text-anchor="middle">${pt.l}</text>`; });
+  return s + `</svg>`;
+}
+document.querySelectorAll("#tabs button").forEach(b => b.onclick = () => { tab = b.dataset.tab; editing = false; draft = null; viewDate = new Date(); renderApp(); window.scrollTo(0,0); });
+
+/* ===================== boot ===================== */
+function bootWith(state){ S = state; if (S && S.profile) renderApp(); else renderOnboarding(); }
+(function(){ let ls = null; try { ls = JSON.parse(localStorage.getItem(LSKEY) || "null"); } catch(e){} bootWith(ls); })();
+(async () => {
+  try { const all = await IDB.all(); for (const k in all) photoURLs[k] = URL.createObjectURL(all[k]); if (S && S.profile) renderApp(); } catch (e) {}
+  if ("serviceWorker" in navigator) { try { await navigator.serviceWorker.register("sw.js"); } catch (e) {} }
+})();
+</script>
+
+</body>
+</html>
