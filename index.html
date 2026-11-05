@@ -173,7 +173,38 @@ textarea{min-height:72px;resize:vertical}
 .tabs button svg{width:22px;height:22px}
 .tabs button[aria-current="page"]{color:var(--accent);background:var(--accent-soft)}
 .toast{position:fixed;left:50%;transform:translateX(-50%);bottom:calc(84px + env(safe-area-inset-bottom,0px));background:var(--ink);color:var(--bg);padding:10px 16px;border-radius:12px;font-size:14px;font-weight:600;z-index:6}
-@media (prefers-reduced-motion:reduce){*{transition:none!important}}
+
+/* to-do list */
+.chips{display:flex;gap:6px;flex-wrap:wrap}
+.chipb{border:1px solid var(--line);background:var(--surface);border-radius:999px;padding:6px 12px;font-size:13px;font-weight:600;color:var(--muted)}
+.chipb[aria-pressed="true"]{background:var(--accent);border-color:var(--accent);color:var(--accent-ink)}
+.tgroup+.tgroup{margin-top:16px}
+.tgroup h3{font-family:var(--body);font-size:12.5px;letter-spacing:.07em;text-transform:uppercase;color:var(--muted);font-weight:700;margin:0 0 4px}
+.tgroup h3 span{background:var(--sunk);border-radius:99px;padding:1px 8px;margin-left:4px;letter-spacing:0}
+.tgroup h3.late{color:var(--fire)}
+.tlist{list-style:none;margin:0;padding:0;display:flex;flex-direction:column}
+.trow{display:flex;align-items:center;gap:12px;padding:11px 2px;border-top:1px solid var(--line)}
+.tlist .trow:first-child{border-top:0}
+.tcheck{flex:none;width:26px;height:26px;border-radius:50%;border:2px solid var(--accent);background:transparent;padding:0;display:grid;place-items:center;transition:background .15s}
+.tcheck[aria-pressed="true"]{background:var(--accent)}
+.tcheck[aria-pressed="true"]::after{content:"";width:6px;height:11px;border:solid var(--accent-ink);border-width:0 2.5px 2.5px 0;transform:rotate(45deg) translate(-1px,-1px)}
+.trow.hi .tcheck{border-color:var(--fire)}
+.tbody{flex:1;min-width:0;background:none;border:0;padding:0;text-align:left;display:flex;flex-direction:column;gap:4px}
+.ttext{font-weight:600;overflow-wrap:anywhere}
+.trow.done .ttext{text-decoration:line-through;color:var(--muted)}
+.tmeta{display:flex;gap:6px;flex-wrap:wrap}
+.tmeta:empty{display:none}
+.tmeta em{font-style:normal;font-size:12px;font-weight:600;color:var(--muted);background:var(--sunk);border-radius:99px;padding:1px 8px}
+.tmeta em.late,.tmeta em.flag{color:var(--fire);background:var(--fire-soft)}
+.chev{color:var(--muted);font-size:22px;line-height:1;flex:none}
+.sheet-back{position:fixed;inset:0;background:rgba(15,10,8,.45);z-index:15;display:flex;align-items:flex-end;justify-content:center}
+.sheet{background:var(--surface);width:100%;max-width:560px;max-height:88vh;overflow:auto;border-radius:24px 24px 0 0;
+  padding:10px max(18px,env(safe-area-inset-right,0px)) calc(22px + env(safe-area-inset-bottom,0px)) max(18px,env(safe-area-inset-left,0px));
+  display:flex;flex-direction:column;gap:14px;box-shadow:0 -10px 40px rgba(0,0,0,.2);animation:sheetUp .22s ease-out}
+@keyframes sheetUp{from{transform:translateY(40px);opacity:.5}}
+.grab{width:42px;height:5px;border-radius:9px;background:var(--line);margin:4px auto 2px;flex:none}
+.danger{color:var(--fire);border-color:var(--fire-soft)}
+@media (prefers-reduced-motion:reduce){*{transition:none!important;animation:none!important}}
 </style>
 
 </head>
@@ -189,6 +220,7 @@ textarea{min-height:72px;resize:vertical}
 </nav></div>
 <div class="toast" id="toast" hidden></div>
 <input type="file" id="photoIn" accept="image/*" capture="environment" hidden>
+<div class="sheet-back" id="sheet" hidden><div class="sheet" role="dialog" aria-label="Task details"></div></div>
 <div class="lightbox" id="lb" hidden role="dialog" aria-label="Proof photo"><img id="lbImg" alt=""><p id="lbCap"></p><button type="button" id="lbClose">Close</button></div>
 
 <script>
@@ -304,6 +336,48 @@ function baseRoutine(){
 function routineFor(k){ return (k && S.days[k] && S.days[k].routine) || baseRoutine(); }
 function day(k){ S.days[k] = S.days[k] || {done:{}, nums:{}}; S.days[k].done = S.days[k].done || {}; S.days[k].nums = S.days[k].nums || {}; return S.days[k]; }
 function dayPct(k){ const r = routineFor(k); const d = S.days[k]; if (!d || !r.length) return 0; return r.filter(x=>d.done?.[x.id]).length / r.length; }
+
+
+/* ---------- to-do list helpers ---------- */
+const TGROUPS = [["overdue","Overdue"],["today","Today"],["tomorrow","Tomorrow"],["week","This week"],["later","Later"]];
+let newDue = "today", showDone = false;
+function addDays(n){ const d = new Date(); d.setDate(d.getDate() + n); return keyOf(d); }
+function dueFromChip(c){ if (c === "none") return ""; if (c === "tomorrow") return addDays(1); if (c === "week") return addDays(6 - ((new Date().getDay() + 6) % 7)); return addDays(0); }
+function bucket(t){ if (t.done) return "done"; if (!t.due) return "later"; const today = addDays(0);
+  if (t.due < today) return "overdue"; if (t.due === today) return "today"; if (t.due === addDays(1)) return "tomorrow"; if (t.due <= addDays(7)) return "week"; return "later"; }
+function dueLabel(k){ if (!k) return ""; if (k === addDays(0)) return "Today"; if (k === addDays(1)) return "Tomorrow"; if (k < addDays(0)) return "Overdue · " + prettyDay(k); return "Due " + prettyDay(k); }
+function openTask(id){
+  const t = S.tasks.find(x => x.id === id); if (!t) return;
+  const sh = document.getElementById("sheet"), box = sh.querySelector(".sheet"), today = addDays(0);
+  const q = sel => box.querySelector(sel);
+  const sync = () => { const tx = q("#tdText"); if (!tx) return; t.text = tx.value.trim() || t.text; t.due = q("#tdDue").value; t.notes = q("#tdNotes").value; };
+  const close = () => { sync(); persist(); sh.hidden = true; document.body.style.overflow = ""; renderApp(); };
+  const draw = () => { const st = t.steps || [];
+    box.innerHTML = `<div class="grab" aria-hidden="true"></div>
+      <div class="field"><label for="tdText">Task</label><input type="text" id="tdText" value="${esc(t.text)}"></div>
+      <div class="field"><label for="tdDue">Due date</label><div class="addrow"><input type="date" id="tdDue" value="${esc(t.due||"")}"><button type="button" class="ghost" id="tdClear">No date</button></div></div>
+      <div class="setrow"><div><b>High priority</b><p class="muted">Shows at the top of its list.</p></div><button type="button" class="switch" id="tdPri" role="switch" aria-checked="${t.priority==="high"}" aria-label="High priority"><i></i></button></div>
+      <div class="field"><label for="tdStep">Steps ${st.length?`<span class="muted">(${st.filter(x=>x.done).length}/${st.length})</span>`:""}</label>
+        ${st.length ? `<ul class="list">${st.map(x => `<li class="item ${x.done?"done":""}"><input class="tick" type="checkbox" data-step="${x.id}" ${x.done?"checked":""} aria-label="Step done"><span>${esc(x.text)}</span><button class="x" type="button" data-rmstep="${x.id}" aria-label="Remove step">×</button></li>`).join("")}</ul>` : ""}
+        <form class="addrow" id="tdStepForm"><input type="text" id="tdStep" placeholder="Break it into a small step" aria-label="New step"><button class="ghost" type="submit">Add</button></form></div>
+      <div class="field"><label for="tdNotes">Notes</label><textarea id="tdNotes" placeholder="Links, ideas, details">${esc(t.notes||"")}</textarea></div>
+      <div class="field"><label for="tdTime">Add to today's routine at</label><div class="addrow"><input type="time" id="tdTime" value="12:00"><button type="button" class="ghost" id="tdToday">Add to Today</button></div></div>
+      <button type="button" class="btn" id="tdSave">Done</button>
+      <button type="button" class="ghost danger" id="tdDel">Delete task</button>`;
+    q("#tdClear").onclick = () => { q("#tdDue").value = ""; };
+    q("#tdPri").onclick = () => { sync(); t.priority = t.priority === "high" ? "normal" : "high"; draw(); };
+    box.querySelectorAll("[data-step]").forEach(c => c.onchange = () => { sync(); const x = t.steps.find(y => y.id === c.dataset.step); x.done = c.checked; draw(); });
+    box.querySelectorAll("[data-rmstep]").forEach(b => b.onclick = () => { sync(); t.steps = t.steps.filter(y => y.id !== b.dataset.rmstep); draw(); });
+    q("#tdStepForm").onsubmit = e => { e.preventDefault(); const v = q("#tdStep").value.trim(); if (!v) return; sync(); t.steps = [...(t.steps||[]), {id:"s"+Date.now(), text:v, done:false}]; draw(); q("#tdStep").focus(); };
+    q("#tdToday").onclick = () => { sync(); const dd = day(today), base = routineFor(today).map(x => ({...x}));
+      base.push({id:"c"+Date.now(), time:q("#tdTime").value || "12:00", title:t.text, hint:"From your to-do list"});
+      dd.routine = base.sort((a,b) => a.time.localeCompare(b.time)); if (!t.due) t.due = today; close(); toast("Added to Today's routine"); };
+    q("#tdSave").onclick = () => { close(); toast("Saved"); };
+    q("#tdDel").onclick = () => { const b = q("#tdDel"); if (b.dataset.sure) { S.tasks = S.tasks.filter(x => x.id !== t.id); persist(); sh.hidden = true; document.body.style.overflow = ""; renderApp(); toast("Task deleted"); } else { b.dataset.sure = "1"; b.textContent = "Tap again to delete"; } };
+  };
+  sh.onclick = e => { if (e.target === sh) close(); };
+  draw(); sh.hidden = false; document.body.style.overflow = "hidden";
+}
 
 /* ---------- proof photos ---------- */
 const photoURLs = {};
@@ -450,18 +524,26 @@ function renderApp(){
   }
 
   if (tab === "tasks") {
-    const open = S.tasks.filter(t=>!t.done), done = S.tasks.filter(t=>t.done);
-    const li = t => `<li class="item ${t.done?"done":""}"><input class="tick" type="checkbox" data-id="${t.id}" ${t.done?"checked":""} aria-label="Done"><span>${esc(t.text)}</span><button class="x" type="button" data-del="${t.id}" aria-label="Delete task">×</button></li>`;
+    S.tasks = S.tasks.map(t => ({steps:[], notes:"", due:"", priority:"normal", ...t}));
+    const open = S.tasks.filter(t => !t.done), done = S.tasks.filter(t => t.done).sort((a,b) => (b.doneAt||0) - (a.doneAt||0));
+    const row = t => { const st = t.steps || [], sd = st.filter(x => x.done).length, b = bucket(t);
+      return `<li class="trow ${t.done?"done":""} ${t.priority==="high"&&!t.done?"hi":""}"><button class="tcheck" type="button" data-tick="${t.id}" aria-pressed="${!!t.done}" aria-label="${t.done?"Mark not done":"Mark done"}: ${esc(t.text)}"></button><button class="tbody" type="button" data-open="${t.id}" aria-label="Open ${esc(t.text)}"><span class="ttext">${esc(t.text)}</span><span class="tmeta">${t.due&&!t.done?`<em class="${b==="overdue"?"late":""}">${dueLabel(t.due)}</em>`:""}${t.priority==="high"&&!t.done?`<em class="flag">High priority</em>`:""}${st.length?`<em>${sd}/${st.length} steps</em>`:""}${t.notes?`<em>Note</em>`:""}</span></button><span class="chev" aria-hidden="true">›</span></li>`; };
+    const groups = TGROUPS.map(([g,label]) => { const items = open.filter(t => bucket(t) === g).sort((a,b) => (a.priority==="high"?0:1) - (b.priority==="high"?0:1));
+      return items.length ? `<div class="tgroup"><h3 class="${g==="overdue"?"late":""}">${label}<span>${items.length}</span></h3><ul class="tlist">${items.map(row).join("")}</ul></div>` : ""; }).join("");
     A.innerHTML = header() + `
-      <div class="card" style="display:flex;flex-direction:column;gap:12px"><h2>Your tasks</h2>
-        <form class="addrow" id="addTask"><input type="text" id="taskIn" placeholder="Add a task, e.g. Film 12 BOJ videos" aria-label="New task"><button class="btn small" type="submit">Add</button></form>
-        ${open.length?`<ul class="list">${open.map(li).join("")}</ul>`:`<div class="empty">Nothing left. Add your next move above.</div>`}
-        ${done.length?`<p class="muted" style="font-size:13px;margin-top:4px">Done (${done.length})</p><ul class="list">${done.map(li).join("")}</ul>`:""}
+      <div class="card set">
+        <div><h2>To-do list</h2><p class="muted" style="font-size:14px;margin-top:2px">One-off jobs and goals. Tap a task to add a due date, steps or notes, or send it to Today. Your daily routine lives in the Today tab.</p></div>
+        <form id="addTask" class="set" style="gap:8px"><div class="addrow"><input type="text" id="taskIn" placeholder="What do you need to get done?" aria-label="New task"><button class="btn small" type="submit">Add</button></div>
+          <div class="chips" role="group" aria-label="When is it due">${[["today","Today"],["tomorrow","Tomorrow"],["week","This week"],["none","No date"]].map(([v,l]) => `<button type="button" class="chipb" data-chip="${v}" aria-pressed="${newDue===v}">${l}</button>`).join("")}</div></form>
       </div>
-      `;
-    A.querySelector("#addTask").onsubmit = e => { e.preventDefault(); const v = A.querySelector("#taskIn").value.trim(); if (!v) return; S.tasks.unshift({id:"t"+Date.now(), text:v, done:false}); persist(); renderApp(); };
-    A.querySelectorAll(".item .tick").forEach(c => c.onchange = () => { const t = S.tasks.find(x=>x.id===c.dataset.id); t.done = c.checked; persist(); renderApp(); });
-    A.querySelectorAll("[data-del]").forEach(b => b.onclick = () => { S.tasks = S.tasks.filter(x=>x.id!==b.dataset.del); persist(); renderApp(); });
+      ${open.length ? `<div class="card">${groups}</div>` : `<div class="empty">You're all clear. Add your next move above.</div>`}
+      ${done.length ? `<div class="card"><button type="button" class="ghost" id="toggleDone" style="width:100%">${showDone?"Hide":"Show"} done tasks (${done.length})</button>${showDone ? `<ul class="tlist" style="margin-top:10px">${done.slice(0,30).map(row).join("")}</ul>` : ""}</div>` : ""}`;
+    A.querySelectorAll("[data-chip]").forEach(b => b.onclick = () => { newDue = b.dataset.chip; A.querySelectorAll("[data-chip]").forEach(x => x.setAttribute("aria-pressed", x === b)); });
+    A.querySelector("#addTask").onsubmit = e => { e.preventDefault(); const v = A.querySelector("#taskIn").value.trim(); if (!v) return;
+      S.tasks.unshift({id:"t"+Date.now(), text:v, done:false, due:dueFromChip(newDue), priority:"normal", notes:"", steps:[]}); persist(); renderApp(); toast("Task added"); };
+    A.querySelectorAll("[data-tick]").forEach(b => b.onclick = () => { const t = S.tasks.find(x => x.id === b.dataset.tick); t.done = !t.done; t.doneAt = t.done ? Date.now() : null; persist(); renderApp(); if (t.done) toast("Nice. Task done."); });
+    A.querySelectorAll("[data-open]").forEach(b => b.onclick = () => openTask(b.dataset.open));
+    const tg = A.querySelector("#toggleDone"); if (tg) tg.onclick = () => { showDone = !showDone; renderApp(); };
   }
 
   if (tab === "settings") {
