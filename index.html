@@ -151,6 +151,7 @@ textarea{min-height:72px;resize:vertical}
 /* settings */
 .set{display:flex;flex-direction:column;gap:12px}
 .swatches{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:10px}
+.sw i{position:relative;overflow:hidden}
 [hidden]{display:none!important}
 .sw{background:var(--sunk);border:2px solid transparent;border-radius:16px;padding:12px 6px;display:flex;flex-direction:column;align-items:center;gap:8px;font-weight:600;font-size:13.5px;min-width:0;text-align:center}
 .sw i{width:34px;height:34px;border-radius:50%;flex:none;box-shadow:inset 0 0 0 2px rgba(255,255,255,.35)}
@@ -240,7 +241,33 @@ details.more summary{cursor:pointer;font-weight:600;color:var(--accent)}
 .jt{height:10px;background:var(--sunk);border-radius:99px;overflow:hidden}
 .jt i{display:block;height:100%;border-radius:99px}
 .jbar b{font-family:var(--mono);font-variant-numeric:tabular-nums;font-size:13px}
-@media (prefers-reduced-motion:reduce){*{transition:none!important;animation:none!important}}
+
+.lvcard{display:flex;gap:14px;align-items:center;text-align:left;width:100%;font:inherit;color:inherit;cursor:pointer}
+.lvcard:disabled{cursor:default;opacity:1}
+.lvbadge{flex:none;width:52px;height:52px;border-radius:16px;background:linear-gradient(135deg,var(--accent),var(--fire));color:var(--accent-ink);display:grid;place-items:center;font-family:var(--display);font-weight:800;font-size:22px}
+.lvbody{flex:1;min-width:0;display:flex;flex-direction:column;gap:6px}
+.lvtop{display:flex;justify-content:space-between;gap:10px;align-items:baseline}
+.lvtop b{font-family:var(--display);font-size:18px}
+.lvbar{height:10px;border-radius:99px;background:var(--sunk);overflow:hidden}
+.lvbar i{display:block;height:100%;border-radius:99px;background:linear-gradient(90deg,var(--accent),var(--fire));transition:width .5s}
+.earn{display:flex;flex-direction:column;gap:8px}
+.earn div{display:flex;justify-content:space-between;gap:10px;font-size:14.5px}
+.earn b{color:var(--accent);font-variant-numeric:tabular-nums}
+.coins{background:var(--fire-soft);color:var(--fire);border-radius:999px;padding:4px 12px;font-weight:700;font-size:13px;white-space:nowrap}
+.rwrow{align-items:center;gap:8px}
+.rwrow .tbody{cursor:default}
+.ghost.small{padding:6px 12px;min-height:0}
+.btn.small:disabled{opacity:.4}
+.badges{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:10px}
+.badge{background:var(--sunk);border-radius:14px;padding:12px;display:flex;flex-direction:column;gap:2px;opacity:.5;filter:grayscale(1)}
+.badge.on{opacity:1;filter:none;background:var(--accent-soft)}
+.badge span{font-size:26px}
+.badge b{font-size:14.5px}
+.badge small{font-size:12.5px;color:var(--muted)}
+.confetti{position:fixed;inset:0;pointer-events:none;z-index:99;overflow:hidden}
+.confetti i{position:absolute;top:-12px;width:8px;height:14px;border-radius:2px;animation:fall linear forwards}
+@keyframes fall{to{top:105%;transform:rotate(720deg) translateX(40px)}}
+@media (prefers-reduced-motion:reduce){*{transition:none!important;animation:none!important}.confetti{display:none}}
 </style>
 
 </head>
@@ -416,6 +443,93 @@ function openTask(id){
   draw(); sh.hidden = false; document.body.style.overflow = "hidden";
 }
 
+
+
+/* ---------- reminders (.ics) ---------- */
+function downloadICS(eve){
+  const now = new Date(), ymd = keyOf(now).replace(/-/g,""), stamp = now.toISOString().replace(/[-:]/g,"").slice(0,15) + "Z";
+  const icsEsc = t => String(t).replace(/\\/g,"\\\\").replace(/;/g,"\;").replace(/,/g,"\\,").replace(/\n/g,"\\n");
+  const ev = (uid, hhmm, title, desc) => { const [h,m] = hhmm.split(":").map(Number), end = h*60 + m + 15;
+    return ["BEGIN:VEVENT", `UID:${uid}-${ymd}@grindboard`, `DTSTAMP:${stamp}`, `DTSTART:${ymd}T${pad(h)}${pad(m)}00`, `DTEND:${ymd}T${pad(Math.floor(end/60)%24)}${pad(end%60)}00`, "RRULE:FREQ=DAILY",
+      `SUMMARY:${icsEsc(title)}`, `DESCRIPTION:${icsEsc(desc || "From Grindboard")}`, "BEGIN:VALARM", "ACTION:DISPLAY", `DESCRIPTION:${icsEsc(title)}`, "TRIGGER:PT0M", "END:VALARM", "END:VEVENT"].join("\r\n"); };
+  const items = routineFor(keyOf(now)).filter(x => /^\d{1,2}:\d{2}$/.test(x.time || "")).map(x => ev(x.id, x.time, x.title, x.hint));
+  if (eve) items.push(ev("journal", eve, "Log your day in Grindboard", "Tick your routine and write your journal entry"));
+  if (!items.length) { toast("Add times to your routine first"); return; }
+  const ics = ["BEGIN:VCALENDAR","VERSION:2.0","PRODID:-//Grindboard//EN","CALSCALE:GREGORIAN","METHOD:PUBLISH", ...items, "END:VCALENDAR"].join("\r\n");
+  const a = document.createElement("a"); a.href = URL.createObjectURL(new Blob([ics], {type:"text/calendar"})); a.download = "grindboard-reminders.ics";
+  document.body.appendChild(a); a.click(); setTimeout(() => { URL.revokeObjectURL(a.href); a.remove(); }, 4000);
+  toast("Opening your calendar…");
+}
+
+/* ---------- rewards ---------- */
+const LEVELS = ["Rookie","Starter","Hustler","Grinder","Go-getter","Closer","Boss","Mogul","Icon","Legend"];
+const levelNeed = n => 50 * n * (n + 1);                     // XP to reach level n+1: 100, 300, 600, 1000…
+function rwStats(){
+  let ticks = 0, proofs = 0, fullDays = 0;
+  Object.keys(S.days || {}).forEach(k => { const d = S.days[k], r = routineFor(k), done = d.done || {};
+    r.forEach(x => { const dn = done[x.id]; if (dn) { ticks++; if (dn.photo) proofs++; } });
+    if (r.length && r.every(x => done[x.id])) fullDays++; });
+  const todos = (S.tasks || []).filter(t => t.done).length, journal = (S.journal || []).length;
+  let best = 0, run = 0; const days = Object.keys(S.days || {}).sort();
+  if (days.length) { const d = new Date(days[0] + "T12:00:00"), end = new Date(); while (d <= end) { if (dayPct(keyOf(d)) >= .5) { run++; best = Math.max(best, run); } else if (keyOf(d) !== keyOf(end)) run = 0; d.setDate(d.getDate() + 1); } }
+  const xp = ticks * 10 + proofs * 5 + fullDays * 25 + todos * 15 + journal * 10 + best * 5;
+  let lv = 0; while (xp >= levelNeed(lv + 1)) lv++;
+  const spent = (S.rewards || []).filter(r => r.claimed).reduce((a,r) => a + (Number(r.cost) || 0), 0);
+  return {ticks, proofs, fullDays, todos, journal, best, xp, lv, name: LEVELS[Math.min(lv, LEVELS.length - 1)], from: levelNeed(lv), to: levelNeed(lv + 1), coins: Math.max(0, xp - spent)};
+}
+const BADGES = [
+  ["first", "🌱", "First step", "Tick your first task", s => s.ticks >= 1],
+  ["s3", "🔥", "On fire", "3-day streak", s => s.best >= 3],
+  ["s7", "⚡", "Full week", "7-day streak", s => s.best >= 7],
+  ["s30", "👑", "Unstoppable", "30-day streak", s => s.best >= 30],
+  ["full5", "💯", "Perfect five", "Finish 5 full days", s => s.fullDays >= 5],
+  ["proof10", "📸", "Receipts", "10 proof photos", s => s.proofs >= 10],
+  ["todo25", "✅", "Closer", "Finish 25 to-dos", s => s.todos >= 25],
+  ["j10", "📓", "Storyteller", "10 journal entries", s => s.journal >= 10],
+  ["lv5", "🚀", "Level 5", "Reach level 5", s => s.lv >= 4],
+  ["xp5k", "💎", "Diamond", "Earn 5,000 points", s => s.xp >= 5000]
+];
+function checkRewards(){
+  if (!S || !S.profile) return;
+  const st = rwStats(); S.rw = S.rw || {lv: st.lv, seen: BADGES.filter(b => b[4](st)).map(b => b[0])};
+  const fresh = BADGES.filter(b => b[4](st) && !S.rw.seen.includes(b[0]));
+  if (st.lv > S.rw.lv) { celebrate(`Level up! You're now a ${st.name}`); S.rw.lv = st.lv; persist(); }
+  else if (fresh.length) { celebrate(`${fresh[0][1]} Badge unlocked: ${fresh[0][2]}`); }
+  if (fresh.length) { S.rw.seen.push(...fresh.map(b => b[0])); persist(); }
+  if (st.lv < S.rw.lv) { S.rw.lv = st.lv; persist(); }
+}
+function celebrate(msg){
+  toast(msg); const box = document.createElement("div"); box.className = "confetti"; box.setAttribute("aria-hidden","true");
+  const cols = ["var(--accent)","var(--fire)","#facc15","#22c55e","#38bdf8"];
+  box.innerHTML = Array.from({length:36}, (_,i) => `<i style="left:${Math.random()*100}%;background:${cols[i%5]};animation-delay:${Math.random()*.3}s;animation-duration:${1.2+Math.random()}s;transform:rotate(${Math.random()*360}deg)"></i>`).join("");
+  document.body.appendChild(box); setTimeout(() => box.remove(), 2600);
+}
+function levelCard(st){
+  const pct = Math.min(100, (st.xp - st.from) / (st.to - st.from) * 100);
+  return `<button type="button" class="card lvcard" id="openRw" aria-label="Open rewards"><span class="lvbadge">${st.lv + 1}</span><span class="lvbody"><span class="lvtop"><b>${st.name}</b><span class="muted">${st.xp.toLocaleString()} pts</span></span><span class="lvbar"><i style="width:${pct}%"></i></span><span class="muted" style="font-size:12.5px">${(st.to - st.xp).toLocaleString()} points to level ${st.lv + 2} · Rewards ›</span></span></button>`;
+}
+function renderRewards(A){
+  const st = rwStats(); S.rewards = S.rewards || [];
+  A.innerHTML = header() + `<button type="button" class="ghost" id="rwBack" style="align-self:flex-start">‹ Back</button>` + levelCard(st).replace('id="openRw"', 'id="lvNow" disabled') + `
+    <div class="card set"><h2>How to earn points</h2><div class="earn">
+      ${[["Tick a routine task","+10"],["Add a proof photo","+5"],["Finish your whole day","+25"],["Finish a to-do","+15"],["Write a journal entry","+10"],["Each day of your best streak","+5"]].map(([a,b]) => `<div><span>${a}</span><b>${b}</b></div>`).join("")}
+    </div><p class="muted" style="font-size:13px">Untick something and the points come off, so they always match what you really did.</p></div>
+    <div class="card set"><div class="cardhead"><h2>Treat yourself</h2><span class="coins">${st.coins.toLocaleString()} pts to spend</span></div>
+      <p class="muted" style="font-size:14px;margin-top:-4px">Add real rewards and give each one a price in points. When you have enough, claim it and enjoy it guilt-free.</p>
+      ${S.rewards.length ? `<ul class="tlist">${S.rewards.map(r => `<li class="trow rwrow ${r.claimed?"done":""}"><span class="tbody"><span class="ttext">${esc(r.text)}</span><span class="tmeta"><em>${Number(r.cost).toLocaleString()} pts</em>${r.claimed ? `<em>Claimed ${prettyDay(r.claimed)}</em>` : st.coins >= r.cost ? `<em class="flag">Ready to claim</em>` : `<em>${(r.cost - st.coins).toLocaleString()} to go</em>`}</span></span>
+        ${r.claimed ? "" : `<button type="button" class="btn small" data-claim="${r.id}" ${st.coins >= r.cost ? "" : "disabled"}>Claim</button>`}<button type="button" class="ghost small" data-rmrw="${r.id}" aria-label="Remove ${esc(r.text)}">×</button></li>`).join("")}</ul>` : `<div class="empty">No rewards yet. Try "New trainers · 2000" or "Takeaway night · 500".</div>`}
+      <form id="rwForm" class="set" style="gap:8px"><input type="text" id="rwText" placeholder="Reward, e.g. Nando's with friends" maxlength="60" aria-label="Reward">
+        <div class="addrow"><input type="number" id="rwCost" min="10" step="10" inputmode="numeric" placeholder="Price in points, e.g. 500" aria-label="Price in points"><button class="btn small" type="submit">Add</button></div></form>
+    </div>
+    <div class="card set"><h2>Badges <span class="muted" style="font-weight:500;font-size:14px">${BADGES.filter(b => b[4](st)).length}/${BADGES.length}</span></h2>
+      <div class="badges">${BADGES.map(([id,ic,name,how,ok]) => `<div class="badge ${ok(st)?"on":""}"><span>${ic}</span><b>${name}</b><small>${how}</small></div>`).join("")}</div></div>`;
+  A.querySelector("#rwBack").onclick = () => { tab = "today"; renderApp(); };
+  A.querySelector("#rwForm").onsubmit = e => { e.preventDefault(); const t = A.querySelector("#rwText").value.trim(), c = Math.round(Number(A.querySelector("#rwCost").value));
+    if (!t) { toast("Write the reward first"); return; } if (!(c > 0)) { toast("Give it a price in points"); return; }
+    S.rewards.push({id:"w"+Date.now(), text:t, cost:c, claimed:""}); persist(); renderApp(); toast("Reward added"); };
+  A.querySelectorAll("[data-claim]").forEach(b => b.onclick = () => { const r = S.rewards.find(x => x.id === b.dataset.claim); r.claimed = keyOf(new Date()); persist(); renderApp(); celebrate("🎉 Enjoy it: " + r.text); });
+  A.querySelectorAll("[data-rmrw]").forEach(b => b.onclick = () => { S.rewards = S.rewards.filter(x => x.id !== b.dataset.rmrw); persist(); renderApp(); });
+}
 
 /* ---------- journal ---------- */
 const MOODS = ["Calm","Confident","Motivated","Happy","Anxious","Frustrated","Bored","Tired"];
@@ -705,6 +819,14 @@ const THEMES = {
   forest:{name:"Forest", light:{bg:"#f2f4ef",surface:"#ffffff",sunk:"#e8ece2",line:"#dce1d4",accent:"#2f6f4f",soft:"#dcebe1",ink2:"#ffffff",fire:"#b7791f",fireSoft:"#f6e8cf"}, dark:{bg:"#121612",surface:"#1a201a",sunk:"#232b23",line:"#2e382e",accent:"#6cc79b",soft:"#1d3428",ink2:"#0e1a14",fire:"#e3b852",fireSoft:"#352c17"}},
   lavender:{name:"Lavender", light:{bg:"#f6f4fb",surface:"#ffffff",sunk:"#ece8f6",line:"#e0dbef",accent:"#6d4fc2",soft:"#e7e0f8",ink2:"#ffffff",fire:"#d2558f",fireSoft:"#f9dfeb"}, dark:{bg:"#15131c",surface:"#1e1b28",sunk:"#282435",line:"#343043",accent:"#a78bfa",soft:"#2c2445",ink2:"#170f2c",fire:"#f48fbf",fireSoft:"#3a1f2e"}},
   rose:{name:"Rose", light:{bg:"#fbf3f3",surface:"#fffdfd",sunk:"#f5e6e7",line:"#ecd9db",accent:"#c2416b",soft:"#f8dde5",ink2:"#ffffff",fire:"#d9822b",fireSoft:"#f9e6d3"}, dark:{bg:"#1b1315",surface:"#251a1d",sunk:"#302226",line:"#3d2c31",accent:"#f17fa3",soft:"#43222d",ink2:"#2a0e18",fire:"#f2ad6b",fireSoft:"#3c2a1a"}},
+  sunset:{name:"Sunset", light:{bg:"#fbf3ee",surface:"#fffcfa",sunk:"#f6e5da",line:"#efd8c9",accent:"#d9480f",soft:"#fde0cf",ink2:"#ffffff",fire:"#c2255c",fireSoft:"#fadbe6"}, dark:{bg:"#1b1310",surface:"#261a15",sunk:"#31221b",line:"#402d24",accent:"#ff8a4c",soft:"#45251a",ink2:"#2a0f05",fire:"#f783ac",fireSoft:"#3f1d2a"}},
+  midnight:{name:"Midnight", light:{bg:"#f1f2f8",surface:"#ffffff",sunk:"#e5e7f2",line:"#d7dbea",accent:"#3730a3",soft:"#e0e0f7",ink2:"#ffffff",fire:"#7c3aed",fireSoft:"#ece2fd"}, dark:{bg:"#0c0d17",surface:"#141526",sunk:"#1c1e33",line:"#282a44",accent:"#818cf8",soft:"#22244a",ink2:"#0b0c22",fire:"#c4b5fd",fireSoft:"#2a2147"}},
+  mint:{name:"Mint", light:{bg:"#f0f7f5",surface:"#ffffff",sunk:"#e1f0ec",line:"#d0e6df",accent:"#0f8a6e",soft:"#d3f0e7",ink2:"#ffffff",fire:"#0ea5e9",fireSoft:"#d8effb"}, dark:{bg:"#0e1715",surface:"#14211e",sunk:"#1b2c28",line:"#263a35",accent:"#4fd6b0",soft:"#163a31",ink2:"#062019",fire:"#67c8f2",fireSoft:"#13303f"}},
+  gold:{name:"Gold", light:{bg:"#f8f5ec",surface:"#fffdf7",sunk:"#f0eadb",line:"#e6dec9",accent:"#a16207",soft:"#f6e9c8",ink2:"#ffffff",fire:"#b45309",fireSoft:"#fbe5cc"}, dark:{bg:"#16130b",surface:"#211c10",sunk:"#2b2516",line:"#3a321f",accent:"#facc15",soft:"#3a3013",ink2:"#1f1800",fire:"#fb923c",fireSoft:"#3d2814"}},
+  cherry:{name:"Cherry", light:{bg:"#fbf2f2",surface:"#fffdfd",sunk:"#f6e2e2",line:"#eed2d2",accent:"#b91c1c",soft:"#fadcdc",ink2:"#ffffff",fire:"#9f1239",fireSoft:"#f9dbe3"}, dark:{bg:"#1a0f10",surface:"#251517",sunk:"#311c1f",line:"#42272a",accent:"#f87171",soft:"#46191c",ink2:"#2a0505",fire:"#fb7185",fireSoft:"#401a24"}},
+  sky:{name:"Sky", light:{bg:"#f0f7fc",surface:"#ffffff",sunk:"#e0eef8",line:"#cfe3f2",accent:"#0369a1",soft:"#d6ebf8",ink2:"#ffffff",fire:"#0891b2",fireSoft:"#d4f0f6"}, dark:{bg:"#0b1520",surface:"#111f2e",sunk:"#18293b",line:"#22374c",accent:"#38bdf8",soft:"#123247",ink2:"#03192a",fire:"#5eead4",fireSoft:"#123533"}},
+  coffee:{name:"Coffee", light:{bg:"#f6f1ec",surface:"#fffcf9",sunk:"#ede4db",line:"#e2d6ca",accent:"#7c4a2d",soft:"#efdfd2",ink2:"#ffffff",fire:"#a16207",fireSoft:"#f5e6c9"}, dark:{bg:"#17120f",surface:"#211a16",sunk:"#2b221d",line:"#3a2e27",accent:"#d6a37f",soft:"#3a2a20",ink2:"#22140b",fire:"#e8b75a",fireSoft:"#382c17"}},
+  neon:{name:"Neon", light:{bg:"#f4f7ee",surface:"#ffffff",sunk:"#e9efdd",line:"#dbe4ca",accent:"#4d7c0f",soft:"#e2f2c6",ink2:"#ffffff",fire:"#c026d3",fireSoft:"#f6dcf9"}, dark:{bg:"#0b0d08",surface:"#13170e",sunk:"#1b2114",line:"#28301d",accent:"#a3e635",soft:"#26350f",ink2:"#121a03",fire:"#e879f9",fireSoft:"#3a1a3f"}},
   mono:{name:"Mono", light:{bg:"#f4f4f3",surface:"#ffffff",sunk:"#ebebea",line:"#dedede",accent:"#1d1d1f",soft:"#e4e4e4",ink2:"#ffffff",fire:"#6b6b70",fireSoft:"#e9e9ea"}, dark:{bg:"#111111",surface:"#1a1a1a",sunk:"#242424",line:"#303030",accent:"#f2f2f2",soft:"#2e2e2e",ink2:"#111111",fire:"#b5b5b5",fireSoft:"#2a2a2a"}}
 };
 const FONTS = {
@@ -714,13 +836,26 @@ const FONTS = {
   bold:{name:"Bold", display:"'Space Grotesk',system-ui,sans-serif", body:"'DM Sans',system-ui,sans-serif"},
   classic:{name:"Classic", display:"'Fraunces',Georgia,serif", body:"'Outfit',system-ui,sans-serif"}
 };
-const DEFAULT_SETTINGS = {theme:"terracotta", font:"modern", size:"normal", proof:true};
+const HOST_THEME = document.documentElement.dataset.theme || "";
+const DEFAULT_SETTINGS = {theme:"terracotta", font:"modern", size:"normal", proof:true, mode:"auto", custom:"#e0457b"};
+const hx = h => { h = h.replace("#",""); if (h.length === 3) h = h.split("").map(c => c+c).join(""); return [0,2,4].map(i => parseInt(h.slice(i,i+2),16)); };
+const toHex = a => "#" + a.map(v => Math.round(Math.max(0,Math.min(255,v))).toString(16).padStart(2,"0")).join("");
+const mix = (a, b, t) => toHex(hx(a).map((v,i) => v + (hx(b)[i] - v) * t));
+const lum = h => { const [r,g,b] = hx(h).map(v => { v /= 255; return v <= .03928 ? v/12.92 : Math.pow((v+.055)/1.055, 2.4); }); return .2126*r + .7152*g + .0722*b; };
+function customTheme(c){
+  let acc = c; while (lum(acc) > .2) acc = mix(acc, "#000000", .12);        // keep text on it readable
+  let accD = c; while (lum(accD) < .3) accD = mix(accD, "#ffffff", .12);
+  return {name:"Your colour",
+    light:{bg:mix(c,"#ffffff",.95), surface:"#ffffff", sunk:mix(c,"#ffffff",.9), line:mix(c,"#ffffff",.84), accent:acc, soft:mix(c,"#ffffff",.82), ink2:"#ffffff", fire:mix(acc,"#d9822b",.45), fireSoft:mix(c,"#ffffff",.86)},
+    dark:{bg:mix(c,"#0d0d0d",.93), surface:mix(c,"#161616",.9), sunk:mix(c,"#1f1f1f",.86), line:mix(c,"#2b2b2b",.82), accent:accD, soft:mix(c,"#161616",.7), ink2:mix(c,"#000000",.85), fire:mix(accD,"#efae63",.45), fireSoft:mix(c,"#161616",.78)}};
+}
 function applySettings(){
-  const st = (S && S.settings) || DEFAULT_SETTINGS, t = THEMES[st.theme] || THEMES.terracotta, f = FONTS[st.font] || FONTS.modern;
+  const st = (S && S.settings) || DEFAULT_SETTINGS, t = st.theme === "custom" ? customTheme(st.custom || "#e0457b") : (THEMES[st.theme] || THEMES.terracotta), f = FONTS[st.font] || FONTS.modern;
   const v = o => `--bg:${o.bg};--surface:${o.surface};--sunk:${o.sunk};--line:${o.line};--accent:${o.accent};--accent-soft:${o.soft};--accent-ink:${o.ink2};--fire:${o.fire};--fire-soft:${o.fireSoft};`;
   document.getElementById("themeStyle").textContent =
     `:root{${v(t.light)}--display:${f.display};--body:${f.body};--fs:${st.size === "large" ? "17.5px" : "15.5px"}}` +
     `@media (prefers-color-scheme:dark){:root:not([data-theme="light"]){${v(t.dark)}}}:root[data-theme="dark"]{${v(t.dark)}}`;
+  const root = document.documentElement; if (st.mode === "light" || st.mode === "dark") root.dataset.theme = st.mode; else if (HOST_THEME) root.dataset.theme = HOST_THEME; else delete root.dataset.theme;
 }
 
 function renderApp(){
@@ -736,13 +871,14 @@ function renderApp(){
   if (tab === "today" && editing) { renderEditor(A, k, nav); }
   else if (tab === "today") {
     const r = routineFor(k), d = S.days[k] || {done:{}}, pct = dayPct(k), C = 175.9;
-    A.innerHTML = header() + nav + `
+    A.innerHTML = header() + levelCard(rwStats()) + nav + `
       <div class="card prog"><div class="ring"><svg width="64" height="64" viewBox="0 0 64 64"><circle cx="32" cy="32" r="28" fill="none" stroke="var(--sunk)" stroke-width="7"/><circle cx="32" cy="32" r="28" fill="none" stroke="var(--accent)" stroke-width="7" stroke-linecap="round" stroke-dasharray="${C}" stroke-dashoffset="${C*(1-pct)}"/></svg><b>${Math.round(pct*100)}%</b></div>
         <div><h2>Your routine</h2><p class="muted">Hit 50% to keep your streak alive.</p></div></div>
       <div class="card"><div class="cardhead"><h2>Tasks for this day</h2><button class="ghost" type="button" id="editBtn">Edit</button></div>
         ${r.length ? `<ul class="routine">${r.map(x=>{ const dn = d.done?.[x.id], src = photoSrc(dn); return `<li class="slot ${dn?"done":""}"><span class="time">${esc(x.time)}</span><button class="tickb ${S.settings.proof?"":"plain"}" type="button" data-id="${x.id}" aria-pressed="${!!dn}" aria-label="${dn?"Untick":(S.settings.proof?"Take a proof photo and tick":"Tick")}: ${esc(x.title)}"></button><div><span class="lbl">${esc(x.title)}</span>${x.hint?`<small>${esc(x.hint)}</small>`:""}${src?`<button class="proofbtn" type="button" data-photo="${x.id}" aria-label="View proof photo"><img class="proof" src="${esc(src)}" alt="Proof photo for ${esc(x.title)}"></button>`:""}</div></li>`; }).join("")}</ul>` : `<div class="empty">No tasks for this day. Tap Edit to add some.</div>`}
         <p class="muted" style="font-size:13px;margin-top:10px">${S.settings.proof ? "Tap a box to take a photo as proof. It's saved under Journal, then Playbook." : "Tap a box to tick it off. Photo proof is off in Settings."}</p></div>`;
     A.querySelector("#editBtn").onclick = () => { editing = true; draft = null; renderApp(); };
+    A.querySelector("#openRw").onclick = () => { tab = "rewards"; renderApp(); window.scrollTo(0,0); };
     A.querySelectorAll(".tickb").forEach(b => b.onclick = () => {
       const id = b.dataset.id, dd = day(k);
       if (dd.done[id]) { delete dd.done[id]; persist(); renderApp(); return; }
@@ -754,6 +890,7 @@ function renderApp(){
     A.querySelectorAll("[data-photo]").forEach(b => b.onclick = () => { const dn = d.done[b.dataset.photo], item = r.find(x => x.id === b.dataset.photo); openPhoto(photoSrc(dn), (item ? item.title : "Task") + " · " + prettyDay(k)); });
   }
 
+  if (tab === "rewards") renderRewards(A);
   if (tab === "tasks") {
     S.tasks = S.tasks.map(t => ({steps:[], notes:"", due:"", priority:"normal", ...t}));
     const open = S.tasks.filter(t => !t.done), done = S.tasks.filter(t => t.done).sort((a,b) => (b.doneAt||0) - (a.doneAt||0));
@@ -781,7 +918,9 @@ function renderApp(){
     const st = S.settings, p = S.profile;
     A.innerHTML = header() + `
       <div class="card set"><h2>Colour</h2>
-        <div class="swatches">${Object.entries(THEMES).map(([id,t])=>`<button type="button" class="sw" data-theme-id="${id}" aria-pressed="${st.theme===id}"><i style="background:linear-gradient(135deg,${t.light.accent},${t.light.fire})"></i><span>${t.name}</span></button>`).join("")}</div>
+        <div class="seg three" role="group" aria-label="Light or dark">${[["auto","Auto"],["light","Light"],["dark","Dark"]].map(([v,l])=>`<button type="button" data-mode="${v}" aria-pressed="${(st.mode||"auto")===v}">${l}</button>`).join("")}</div>
+        <div class="swatches">${Object.entries(THEMES).map(([id,t])=>`<button type="button" class="sw" data-theme-id="${id}" aria-pressed="${st.theme===id}"><i style="background:linear-gradient(135deg,${t.light.accent},${t.light.fire})"></i><span>${t.name}</span></button>`).join("")}
+          <label class="sw" aria-pressed="${st.theme==="custom"}" style="cursor:pointer"><i style="background:${st.theme==="custom" ? esc(st.custom) : "conic-gradient(#f43f5e,#f59e0b,#84cc16,#06b6d4,#6366f1,#d946ef,#f43f5e)"};display:grid;place-items:center"><input type="color" id="customCol" value="${esc(st.custom||"#e0457b")}" aria-label="Pick your own colour" style="opacity:0;width:100%;height:100%;border:0;padding:0;cursor:pointer"></i><span>Custom</span></label></div>
       </div>
       <div class="card set"><h2>Font</h2>
         <div class="fonts">${Object.entries(FONTS).map(([id,f])=>`<button type="button" class="fc" data-font-id="${id}" aria-pressed="${st.font===id}"><b style="font-family:${f.display}">Aa</b><span style="font-family:${f.body}">${f.name}</span></button>`).join("")}</div>
@@ -790,6 +929,12 @@ function renderApp(){
       <div class="card set"><h2>Photo proof</h2>
         <div class="setrow"><div><b>Take a photo when I tick a task</b><p class="muted">Photos save to your Proof journal. Turn this off to tick tasks with one tap.</p></div>
         <button type="button" class="switch" id="proofSw" role="switch" aria-checked="${!!st.proof}" aria-label="Take a photo when I tick a task"><i></i></button></div>
+      </div>
+      <div class="card set"><h2>Reminders</h2>
+        <p class="muted">Put your routine in your phone's calendar. Your phone then reminds you at each time, even when Grindboard is closed.</p>
+        <div class="setrow"><div><b>Evening journal reminder</b><p class="muted">A nudge to log your day</p></div><input type="time" id="remEve" value="${esc(st.eve||"21:00")}" style="width:auto"></div>
+        <button class="btn" type="button" id="remCal">Add reminders to my calendar</button>
+        <p class="muted" style="font-size:13px">On iPhone, tap <b>Add All</b> on the next screen. If you change your routine later, tap this again and delete the old ones in your calendar.</p>
       </div>
       <div class="card set"><h2>Your plan</h2>
         <p class="muted">${PATHS[p.path].name}</p>
@@ -812,9 +957,14 @@ function renderApp(){
       </div>`;
     const upd = patch => { S.settings = {...S.settings, ...patch}; applySettings(); persist(); renderApp(); };
     A.querySelectorAll("[data-theme-id]").forEach(b => b.onclick = () => upd({theme: b.dataset.themeId}));
+    A.querySelectorAll("[data-mode]").forEach(b => b.onclick = () => upd({mode: b.dataset.mode}));
+    A.querySelector("#customCol").onchange = ev => { upd({theme:"custom", custom: ev.target.value}); toast("Your colour is set"); };
+    A.querySelector("#customCol").oninput = ev => { S.settings.theme = "custom"; S.settings.custom = ev.target.value; applySettings(); };
     A.querySelectorAll("[data-font-id]").forEach(b => b.onclick = () => upd({font: b.dataset.fontId}));
     A.querySelectorAll("[data-size]").forEach(b => b.onclick = () => upd({size: b.dataset.size}));
     A.querySelector("#proofSw").onclick = () => { upd({proof: !S.settings.proof}); toast(S.settings.proof ? "Photo proof on" : "Photo proof off"); };
+    A.querySelector("#remEve").onchange = ev => { S.settings.eve = ev.target.value; persist(); };
+    A.querySelector("#remCal").onclick = () => downloadICS(A.querySelector("#remEve").value);
     A.querySelector("#sSave").onclick = () => {
       S.profile.name = A.querySelector("#sName").value.trim(); S.profile.wake = A.querySelector("#sWake").value || S.profile.wake;
       S.profile.goal = Number(A.querySelector("#sGoal").value) || 0; persist(); renderApp(); toast("Saved");
@@ -869,6 +1019,7 @@ function renderApp(){
   const pv = document.getElementById("dPrev"), nx = document.getElementById("dNext");
   if (pv) pv.onclick = () => { editing = false; draft = null; viewDate = new Date(viewDate); viewDate.setDate(viewDate.getDate()-1); renderApp(); };
   if (nx) nx.onclick = () => { editing = false; draft = null; viewDate = new Date(viewDate); viewDate.setDate(viewDate.getDate()+1); renderApp(); };
+  checkRewards();
 }
 function chart(){
   const p = PATHS[S.profile.path], pts = [];
