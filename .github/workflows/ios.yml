@@ -1,0 +1,84 @@
+name: iPhone app build
+
+on:
+  push:
+    branches: [main]
+    paths: ["index.html", "app/**", ".github/workflows/ios.yml"]
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+concurrency:
+  group: ios-build
+  cancel-in-progress: true
+
+jobs:
+  build:
+    runs-on: macos-15
+    timeout-minutes: 45
+    defaults:
+      run:
+        working-directory: app
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+
+      - name: Use Xcode 26
+        run: |
+          ls -d /Applications/Xcode*.app
+          X=$(ls -d /Applications/Xcode_26*.app 2>/dev/null | sort -V | tail -1)
+          if [ -z "$X" ]; then echo "::error::Xcode 26 is not installed on this runner"; exit 1; fi
+          sudo xcode-select -s "$X"
+          xcodebuild -version
+
+      - name: Install Capacitor
+        run: if [ -f package-lock.json ]; then npm ci; else npm install; fi
+
+      - name: Copy the web app in
+        run: npm run copy-web
+
+      - name: Create the iOS project (first build only)
+        run: if [ ! -d ios ]; then npx cap add ios; fi
+
+      - name: Sync plugins and web app
+        run: npx cap sync ios
+
+      - name: Native settings, icon and launch screen
+        run: bash scripts/native-setup.sh
+
+      - name: Build for the iPhone simulator
+        working-directory: app/ios/App
+        run: |
+          set -o pipefail
+          if [ -d App.xcworkspace ]; then TARGET="-workspace App.xcworkspace"; else TARGET="-project App.xcodeproj"; fi
+          xcodebuild $TARGET -scheme App -configuration Debug -sdk iphonesimulator \
+            -destination 'generic/platform=iOS Simulator' -derivedDataPath build \
+            CODE_SIGNING_ALLOWED=NO build 2>&1 | tee xcodebuild.log | grep -E "error:|warning: .*deprecated|BUILD (SUCCEEDED|FAILED)" || true
+          grep -q "BUILD SUCCEEDED" xcodebuild.log
+
+      - name: Upload build log
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: xcodebuild-log
+          path: app/ios/App/xcodebuild.log
+          if-no-files-found: ignore
+
+      - name: Upload simulator app
+        if: success()
+        uses: actions/upload-artifact@v4
+        with:
+          name: Grindboard-simulator
+          path: app/ios/App/build/Build/Products/Debug-iphonesimulator/App.app
+
+      - name: Save the iOS project back to the repo
+        if: success()
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add ios package-lock.json resources scripts || true
+          if git diff --cached --quiet; then echo "nothing to save"; else git commit -m "Save generated iOS project [skip ci]" && git push; fi

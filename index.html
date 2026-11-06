@@ -8,11 +8,11 @@
 <meta name="theme-color" content="#1a1614" media="(prefers-color-scheme: dark)">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="mobile-web-app-capable" content="yes">
-<meta name="gb-version" content="12">
+<meta name="gb-version" content="13">
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 <meta name="apple-mobile-web-app-title" content="Grindboard">
 <link rel="manifest" href="manifest.webmanifest">
-<script>window.GB_API = "https://grindboard-api.omareleter.workers.dev"; window.GB_VERSION = "12";</script>
+<script>window.GB_API = "https://grindboard-api.omareleter.workers.dev"; window.GB_VERSION = "13";</script>
 <link rel="icon" type="image/png" sizes="192x192" href="icon-192.png">
 <link rel="apple-touch-icon" href="apple-touch-icon.png">
 <style>html{-webkit-text-size-adjust:100%}body{margin:0}img{max-width:100%}[hidden]{display:none!important}
@@ -530,10 +530,29 @@ function openTask(id){
 
 
 /* ---------- server: phone notifications + AI coach ---------- */
+const NATIVE = !!(window.Capacitor && window.Capacitor.isNativePlatform && window.Capacitor.isNativePlatform());
+const CP = NATIVE ? (window.Capacitor.Plugins || {}) : {};
 const API = String(window.GB_API || "").replace(/\/$/, "");
 const VAPID = "BPAevOlTry9dJFulfjc_aFErrAS1yDGua_m365qrCRiTOkiCfAjjwm7KxLV3AwPnH9AdBBn4TJ0dLoMBqP9jpnI";
-const IOS = /iPhone|iPad|iPod/.test(navigator.userAgent), STANDALONE = (window.matchMedia && matchMedia("(display-mode: standalone)").matches) || navigator.standalone === true;
-const PUSH_OK = !!API && "serviceWorker" in navigator && "PushManager" in window && "Notification" in window;
+const IOS = /iPhone|iPad|iPod/.test(navigator.userAgent), STANDALONE = NATIVE || (window.matchMedia && matchMedia("(display-mode: standalone)").matches) || navigator.standalone === true;
+const PUSH_OK = NATIVE ? !!CP.LocalNotifications : (!!API && "serviceWorker" in navigator && "PushManager" in window && "Notification" in window);
+/* iPhone app: reminders are scheduled on the phone itself, no server needed */
+async function nativeSchedule(test, quiet){
+  try {
+    const LN = CP.LocalNotifications; let perm = await LN.checkPermissions();
+    if (perm.display !== "granted") perm = await LN.requestPermissions();
+    if (perm.display !== "granted") { toast("Notifications are off. Turn them on in iPhone Settings → Grindboard → Notifications."); return false; }
+    const pend = await LN.getPending(); if (pend.notifications && pend.notifications.length) await LN.cancel({notifications: pend.notifications.map(n => ({id: n.id}))});
+    const list = pushItems().map((it, i) => { const [h, m] = it.t.split(":").map(Number), on = {hour: h, minute: m}; if (it.dow !== undefined) on.weekday = it.dow + 1;
+      return {id: 100 + i, title: it.title, body: it.body || "Tap to open Grindboard and tick it off.", schedule: {on, allowWhileIdle: true}}; });
+    if (test) list.push({id: 99, title: "Grindboard", body: "Notifications are on. You'll get a nudge at each task time.", schedule: {at: new Date(Date.now() + 3000)}});
+    await LN.schedule({notifications: list});
+    try { localStorage.setItem("gb-push-hash", JSON.stringify([pushItems(), "native"])); } catch (e) {}
+    if (!S.settings.push) { S.settings.push = true; persist(); }
+    if (!quiet) toast(test ? "Notifications on ✅" : "Reminders updated");
+    return true;
+  } catch (e) { if (!quiet) toast("Couldn't set reminders: " + e.message); return false; }
+}
 async function apiPost(path, body){
   const r = await fetch(API + path, {method:"POST", headers:{"Content-Type":"application/json", ...authHeaders()}, body: JSON.stringify(body)});
   let data = {}; try { data = await r.json(); } catch (e) {}
@@ -549,6 +568,7 @@ function pushItems(){
 }
 const tzName = () => { try { return Intl.DateTimeFormat().resolvedOptions().timeZone || "Europe/London"; } catch (e) { return "Europe/London"; } };
 async function enablePush(test){
+  if (NATIVE) return nativeSchedule(test);
   try {
     if (!PUSH_OK) { toast("This phone can't get notifications from the app"); return false; }
     const perm = Notification.permission === "granted" ? "granted" : await Notification.requestPermission();
@@ -564,6 +584,8 @@ async function enablePush(test){
   } catch (e) { toast("Couldn't turn on notifications: " + e.message); return false; }
 }
 async function disablePush(){
+  if (NATIVE) { try { const LN = CP.LocalNotifications, pend = await LN.getPending(); if (pend.notifications && pend.notifications.length) await LN.cancel({notifications: pend.notifications.map(n => ({id: n.id}))}); } catch (e) {}
+    S.settings.push = false; try { localStorage.removeItem("gb-push-hash"); } catch (e) {} persist(); toast("Notifications off"); return; }
   try { const reg = await navigator.serviceWorker.ready, sub = await reg.pushManager.getSubscription();
     if (sub) { await apiPost("/unsubscribe", {endpoint: sub.endpoint}).catch(() => {}); await sub.unsubscribe(); } } catch (e) {}
   S.settings.push = false; try { localStorage.removeItem("gb-push-hash"); } catch (e) {} persist(); toast("Notifications off");
@@ -571,6 +593,7 @@ async function disablePush(){
 let pushT = null;
 function syncPushSoon(){
   if (!PUSH_OK || !S || !S.settings || !S.settings.push) return;
+  if (NATIVE) { clearTimeout(pushT); pushT = setTimeout(() => { let old = null; try { old = localStorage.getItem("gb-push-hash"); } catch (e) {} if (old !== JSON.stringify([pushItems(), "native"])) nativeSchedule(false, true); }, 1500); return; }
   clearTimeout(pushT); pushT = setTimeout(async () => {
     const h = JSON.stringify([pushItems(), tzName()]); let old = null; try { old = localStorage.getItem("gb-push-hash"); } catch (e) {}
     if (h === old) return;
@@ -849,6 +872,11 @@ async function shareWeek(){
   if (w.win) { g.globalAlpha = .9; t("BEST WIN", 90, 1720, 30, 700, body); g.globalAlpha = 1; let line = "“" + w.win + "”"; g.font = `700 46px ${body}`; while (g.measureText(line).width > 900 && line.length > 10) line = line.slice(0, -2) + "…”"; t(line, 90, 1785, 46, 700, body); }
   g.globalAlpha = .7; t("omareleter.github.io/grindboard", W / 2, 1880, 28, 600, body, "center"); g.globalAlpha = 1;
   const blob = await new Promise(r => c.toBlob(r, "image/png")); if (!blob) { toast("Couldn't make the image"); return; }
+  if (NATIVE && CP.Share && CP.Filesystem) {
+    try { const b64 = await new Promise(r => { const fr = new FileReader(); fr.onload = () => r(String(fr.result).split(",")[1]); fr.readAsDataURL(blob); });
+      const w = await CP.Filesystem.writeFile({path: "my-grindboard-week.png", data: b64, directory: "CACHE"});
+      await CP.Share.share({title: "My Grindboard week", files: [w.uri]}); return; } catch (e) { if (/cancel/i.test(String(e && e.message))) return; }
+  }
   const file = new File([blob], "my-grindboard-week.png", {type: "image/png"});
   try { if (navigator.canShare && navigator.canShare({files: [file]})) { await navigator.share({files: [file], title: "My Grindboard week"}); return; } } catch (e) { if (e && e.name === "AbortError") return; }
   const url = URL.createObjectURL(blob), bx2 = openSheet();
@@ -1018,6 +1046,7 @@ if (API) {
   setTimeout(() => { if (auth) pullSync(); }, 800);
 }
 
+if (NATIVE) document.addEventListener("click", e => { if (e.target.closest && e.target.closest(".tickb, .gem, .chipb, .switch") && CP.Haptics) CP.Haptics.impact({style: "LIGHT"}).catch(() => {}); }, true);
 /* ---------- keyboard handling ---------- */
 (function(){
   const root = document.documentElement, isField = el => el && el.matches && el.matches('input:not([type=checkbox]):not([type=radio]):not([type=color]):not([type=file]):not([type=button]):not([type=submit]), textarea, select');
@@ -1580,11 +1609,11 @@ function renderApp(){
       <div class="card set"><h2>Reminders</h2>
         ${PUSH_OK ? `<div class="setrow"><div><b>Phone notifications</b><p class="muted">${IOS && !STANDALONE ? "Open Grindboard from your Home Screen icon to turn this on." : "A nudge at every task time, even when the app is closed."}</p></div><button type="button" class="switch" id="pushSw" role="switch" aria-checked="${!!st.push}" aria-label="Phone notifications" ${IOS && !STANDALONE ? "disabled" : ""}><i></i></button></div>
         ${st.push ? `<button class="ghost" type="button" id="pushTest" style="align-self:flex-start">Send a test notification</button>` : ""}
-        <p class="muted" style="font-size:13px;margin-top:4px"><b>Or</b> use your calendar instead:</p>` : ""}
-        <p class="muted">Put your routine in your phone's calendar. Your phone then reminds you at each time, even when Grindboard is closed.</p>
+        ${NATIVE ? "" : `<p class="muted" style="font-size:13px;margin-top:4px"><b>Or</b> use your calendar instead:</p>`}` : ""}
+        ${NATIVE ? "" : `<p class="muted">Put your routine in your phone's calendar. Your phone then reminds you at each time, even when Grindboard is closed.</p>`}
         <div class="setrow"><div><b>Evening journal reminder</b><p class="muted">A nudge to log your day</p></div><input type="time" id="remEve" value="${esc(st.eve||"21:00")}" style="width:auto"></div>
-        <button class="btn" type="button" id="remCal">Add reminders to my calendar</button>
-        <p class="muted" style="font-size:13px">On iPhone, tap <b>Add All</b> on the next screen. If you change your routine later, tap this again and delete the old ones in your calendar.</p>
+        ${NATIVE ? "" : `<button class="btn" type="button" id="remCal">Add reminders to my calendar</button>
+        <p class="muted" style="font-size:13px">On iPhone, tap <b>Add All</b> on the next screen. If you change your routine later, tap this again and delete the old ones in your calendar.</p>`}
       </div>
       <div class="card set"><h2>Your plan</h2>
         <p class="muted">${PATHS[p.path].name}</p>
@@ -1595,7 +1624,7 @@ function renderApp(){
         </div>
         <button class="btn small" type="button" id="sSave" style="align-self:flex-start">Save changes</button>
       </div>
-      <p class="muted" style="text-align:center;font-size:12.5px">Grindboard version 12</p>
+      <p class="muted" style="text-align:center;font-size:12.5px">Grindboard version 13</p>
       <div class="card set"><h2>Backup</h2>
         <p class="muted">Your plan is saved on this phone. Download a backup to keep it safe or to move it to a new phone. Photos stay on this phone.</p>
         <div class="addrow"><button class="btn small" id="bkDown" type="button">Download backup</button><label class="ghost" for="bkIn" style="cursor:pointer;display:inline-flex;align-items:center">Restore backup</label></div>
@@ -1617,7 +1646,7 @@ function renderApp(){
     A.querySelector("#remEve").onchange = ev => { S.settings.eve = ev.target.value; persist(); };
     const psw = A.querySelector("#pushSw"); if (psw) psw.onclick = async () => { psw.disabled = true; if (S.settings.push) await disablePush(); else await enablePush(true); renderApp(); };
     const pt = A.querySelector("#pushTest"); if (pt) pt.onclick = async () => { pt.disabled = true; await enablePush(true); pt.disabled = false; };
-    A.querySelector("#remCal").onclick = () => downloadICS(A.querySelector("#remEve").value);
+    const rc = A.querySelector("#remCal"); if (rc) rc.onclick = () => downloadICS(A.querySelector("#remEve").value);
     A.querySelector("#sSave").onclick = () => {
       S.profile.name = A.querySelector("#sName").value.trim(); S.profile.wake = A.querySelector("#sWake").value || S.profile.wake;
       S.profile.goal = Number(A.querySelector("#sGoal").value) || 0; persist(); renderApp(); toast("Saved");

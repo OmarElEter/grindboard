@@ -1,0 +1,13 @@
+{
+  "appId": "com.omareleter.grindboard",
+  "appName": "Grindboard",
+  "webDir": "www",
+  "ios": {
+    "contentInset": "never",
+    "backgroundColor": "#f7f3ee",
+    "scheme": "Grindboard"
+  },
+  "plugins": {
+    "LocalNotifications": { "iconColor": "#b5674a" }
+  }
+}

@@ -1,0 +1,21 @@
+{
+  "name": "grindboard-ios",
+  "version": "1.0.0",
+  "private": true,
+  "description": "Grindboard as a native iPhone app (Capacitor). The web app in the repo root is copied into www/ at build time.",
+  "scripts": {
+    "copy-web": "mkdir -p www && cp ../index.html ../icon-192.png ../icon-512.png ../apple-touch-icon.png ../manifest.webmanifest www/",
+    "sync": "npm run copy-web && npx cap sync ios"
+  },
+  "dependencies": {
+    "@capacitor/core": "latest",
+    "@capacitor/ios": "latest",
+    "@capacitor/local-notifications": "latest",
+    "@capacitor/haptics": "latest",
+    "@capacitor/share": "latest",
+    "@capacitor/filesystem": "latest"
+  },
+  "devDependencies": {
+    "@capacitor/cli": "latest"
+  }
+}

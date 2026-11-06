@@ -2,6 +2,7 @@
 const VAPID_PUBLIC = "BPAevOlTry9dJFulfjc_aFErrAS1yDGua_m365qrCRiTOkiCfAjjwm7KxLV3AwPnH9AdBBn4TJ0dLoMBqP9jpnI";
 let VAPID_PRIVATE_JWK = null;   // kept in Cloudflare as the secret VAPID_JWK
 const APP = "https://omareleter.github.io";
+const ORIGINS = [APP, "capacitor://localhost", "ionic://localhost"];   // website + iPhone app
 const CONTACT = "https://omareleter.github.io/grindboard/";
 const MODEL = "claude-haiku-5-5";
 
@@ -42,7 +43,7 @@ async function sendPush(sub, msg){
   return res.status;
 }
 
-const cors = origin => ({"Access-Control-Allow-Origin": APP, "Access-Control-Allow-Methods":"GET, POST, PUT, DELETE, OPTIONS", "Access-Control-Allow-Headers":"Content-Type, Authorization", "Access-Control-Max-Age":"86400", "Vary":"Origin"});
+const cors = origin => ({"Access-Control-Allow-Origin": ORIGINS.includes(origin) ? origin : APP, "Access-Control-Allow-Methods":"GET, POST, PUT, DELETE, OPTIONS", "Access-Control-Allow-Headers":"Content-Type, Authorization", "Access-Control-Max-Age":"86400", "Vary":"Origin"});
 const json = (data, origin, status = 200) => new Response(JSON.stringify(data), {status, headers:{"Content-Type":"application/json", ...cors(origin)}});
 async function subId(endpoint){ return b64u(await crypto.subtle.digest("SHA-256", enc.encode(endpoint))).slice(0, 22); }
 async function loadAll(env){ return (await env.GB.get("subs", "json")) || {}; }
@@ -162,7 +163,7 @@ export default {
     const origin = req.headers.get("Origin") || "", url = new URL(req.url);
     if (req.method === "OPTIONS") return new Response(null, {headers: cors(origin)});
     if (req.method === "GET" && url.pathname === "/") return json({ok:true, app:"grindboard", push: !!env.GB, ai: !!(env.AI || env.ANTHROPIC_API_KEY), accounts: !!env.DB}, origin);
-    if (origin !== APP) return json({error:"forbidden"}, origin, 403);
+    if (!ORIGINS.includes(origin)) return json({error:"forbidden"}, origin, 403);
     if (!env.GB) return json({error:"Storage isn't connected yet."}, origin, 500);
     try {
       if (url.pathname.startsWith("/auth/") || url.pathname === "/sync" || url.pathname.startsWith("/photo")) {
