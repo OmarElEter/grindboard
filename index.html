@@ -8,10 +8,11 @@
 <meta name="theme-color" content="#1a1614" media="(prefers-color-scheme: dark)">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="mobile-web-app-capable" content="yes">
+<meta name="gb-version" content="10">
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 <meta name="apple-mobile-web-app-title" content="Grindboard">
 <link rel="manifest" href="manifest.webmanifest">
-<script>window.GB_API = "https://grindboard-api.omareleter.workers.dev";</script>
+<script>window.GB_API = "https://grindboard-api.omareleter.workers.dev"; window.GB_VERSION = "10";</script>
 <link rel="icon" type="image/png" sizes="192x192" href="icon-192.png">
 <link rel="apple-touch-icon" href="apple-touch-icon.png">
 <style>html{-webkit-text-size-adjust:100%}body{margin:0}img{max-width:100%}[hidden]{display:none!important}
@@ -296,6 +297,39 @@ body.typing{padding-bottom:24px}
 .cprev .pbar i{display:block;height:100%;width:62%;border-radius:99px}
 .cmore{display:flex;align-items:center;gap:12px;font-weight:600}
 .cmore input{width:52px;height:40px;border:1px solid var(--line);border-radius:12px;padding:2px;background:var(--surface)}
+
+.slab{display:grid;grid-template-columns:64px 1fr;align-items:center;gap:10px;font-weight:600;font-size:14px}
+.slab input[type=range]{-webkit-appearance:none;appearance:none;height:28px;border-radius:99px;padding:0;border:1px solid var(--line)}
+.hue{background:linear-gradient(90deg,#f00,#ff0,#0f0,#0ff,#00f,#f0f,#f00)}
+.shade{--h:330;background:linear-gradient(90deg,hsl(var(--h) 78% 22%),hsl(var(--h) 78% 62%))}
+.slab input[type=range]::-webkit-slider-thumb{-webkit-appearance:none;width:30px;height:30px;border-radius:50%;background:#fff;border:3px solid #1f1a17;box-shadow:0 1px 4px rgba(0,0,0,.3)}
+.slab input[type=range]::-moz-range-thumb{width:26px;height:26px;border-radius:50%;background:#fff;border:3px solid #1f1a17}
+.wind{display:flex;flex-direction:column;gap:12px}
+.windrow{display:grid;grid-template-columns:auto 1fr auto;gap:12px;align-items:center}
+.windrow p{font-size:13.5px;margin:0}
+.windic{font-size:26px}
+.gameov{position:fixed;inset:0;z-index:60;background:radial-gradient(circle at 50% 0%,#2b2140,#120e1c 70%);color:#fff;display:flex;flex-direction:column;align-items:center;gap:12px;
+  padding:calc(14px + env(safe-area-inset-top,0px)) 14px calc(20px + env(safe-area-inset-bottom,0px));overflow:auto}
+.gameov .ghost{color:#fff;border-color:rgba(255,255,255,.3);background:transparent}
+.gameov .muted{color:rgba(255,255,255,.65)}
+.gtop{width:100%;max-width:440px;display:grid;grid-template-columns:1fr auto 1fr;align-items:center}
+.gtop .ghost{justify-self:start}
+.gscore{text-align:center}.gscore b{display:block;font-family:var(--display);font-size:30px;line-height:1}.gscore small{opacity:.6}
+.gtime{justify-self:end;font-family:var(--mono);font-size:18px;font-weight:700}
+.gbar{width:100%;max-width:440px;height:6px;border-radius:99px;background:rgba(255,255,255,.12);overflow:hidden}.gbar i{display:block;height:100%;background:linear-gradient(90deg,#a855f7,#ec4899);transition:width 1s linear}
+.gboard{width:100%;max-width:440px;aspect-ratio:1;display:grid;grid-template-columns:repeat(7,1fr);gap:5px;padding:8px;border-radius:20px;background:rgba(255,255,255,.06);touch-action:none;user-select:none;-webkit-user-select:none}
+.gem{border:0;border-radius:12px;padding:0;font-size:clamp(16px,5vw,24px);color:#fff;background:radial-gradient(circle at 35% 30%,color-mix(in srgb,var(--g) 55%,#fff),var(--g) 60%,color-mix(in srgb,var(--g) 70%,#000));
+  box-shadow:0 0 12px color-mix(in srgb,var(--g) 50%,transparent),inset 0 -3px 0 rgba(0,0,0,.2);transition:transform .15s;text-shadow:0 1px 2px rgba(0,0,0,.35)}
+.gem.sel{transform:scale(.86);outline:3px solid #fff;outline-offset:1px}
+.gem.pop{animation:gpop .23s ease-in forwards}.gem.drop{animation:gdrop .2s ease-out}
+@keyframes gpop{to{transform:scale(1.35);opacity:0}}@keyframes gdrop{from{transform:translateY(-40%);opacity:.3}}
+.gtip{font-size:13px;text-align:center}
+.gend{max-width:360px;text-align:center;display:flex;flex-direction:column;gap:12px;align-items:center;margin-top:30px}
+.nightov{position:fixed;inset:0;z-index:60;background:#0b0a12;color:#e9e4ff;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:14px;padding:24px;text-align:center}
+.nightov .ghost{color:#e9e4ff;border-color:rgba(255,255,255,.25);background:transparent;margin-top:20px}
+.nightov .nsub{opacity:.55;font-size:14px;max-width:280px}
+.breath{width:140px;height:140px;border-radius:50%;background:radial-gradient(circle,#8b7cf6,#4c3fa8);box-shadow:0 0 60px #6d5dd8;animation:breathe 16s ease-in-out infinite}
+@keyframes breathe{0%{transform:scale(.6)}25%{transform:scale(1)}50%{transform:scale(1)}75%{transform:scale(.6)}100%{transform:scale(.6)}}
 @media (prefers-reduced-motion:reduce){*{transition:none!important;animation:none!important}.confetti{display:none}}
 </style>
 
@@ -619,28 +653,124 @@ function scrollChat(){ const c = document.getElementById("chat"); if (c && c.las
 /* ---------- custom colour picker ---------- */
 const PALETTE = ["#e11d48","#f43f5e","#ec4899","#d946ef","#a855f7","#7c3aed","#6366f1","#3b82f6","#0ea5e9","#06b6d4","#14b8a6","#10b981",
                  "#22c55e","#84cc16","#eab308","#f59e0b","#f97316","#ef4444","#b45309","#78716c","#64748b","#0f766e","#1e3a8a","#111827"];
+function hslHex(h, sat, l){ sat /= 100; l /= 100; const k = n => (n + h / 30) % 12, a = sat * Math.min(l, 1 - l), f = n => l - a * Math.max(-1, Math.min(k(n) - 3, Math.min(9 - k(n), 1)));
+  return toHex([f(0) * 255, f(8) * 255, f(4) * 255]); }
 function openColourSheet(){
   const box = openSheet(), q = sel => box.querySelector(sel);
   let pick = (S.settings.theme === "custom" && S.settings.custom) || "#e0457b";
-  const draw = () => {
-    const t = customTheme(pick).light;
-    box.innerHTML = `<div class="grab" aria-hidden="true"></div><h2>Pick your colour</h2>
-      <div class="cgrid" role="group" aria-label="Colours">${PALETTE.map(c => `<button type="button" class="cdot" data-c="${c}" aria-label="${c}" aria-pressed="${c.toLowerCase() === pick.toLowerCase()}" style="background:${c}"></button>`).join("")}</div>
-      <label class="cmore">Any other colour <input type="color" id="cAny" value="${esc(pick)}"></label>
-      <div class="cprev" style="background:${t.bg}"><b style="color:#1f1a17">Preview</b>
-        <div class="pbar" style="background:${t.sunk}"><i style="background:linear-gradient(90deg,${t.accent},${t.fire})"></i></div>
-        <div class="pbtn" style="background:${t.accent};color:${t.ink2}">Your buttons look like this</div></div>
-      <button type="button" class="btn" id="cUse">Use this colour</button>
-      <button type="button" class="ghost" id="cCancel">Cancel</button>`;
-    box.querySelectorAll("[data-c]").forEach(b => b.onclick = () => { pick = b.dataset.c; draw(); });
-    q("#cAny").addEventListener("change", ev => { pick = ev.target.value; draw(); });   // only when you actually choose
-    q("#cUse").onclick = () => { S.settings = {...S.settings, theme:"custom", custom: pick}; applySettings(); persist(); closeSheet(); toast("Your colour is set"); };
-    q("#cCancel").onclick = closeSheet;
-  };
-  draw();
+  box.innerHTML = `<div class="grab" aria-hidden="true"></div><h2>Pick your colour</h2>
+    <div class="cgrid" role="group" aria-label="Colours">${PALETTE.map(c => `<button type="button" class="cdot" data-c="${c}" aria-label="${c}" style="background:${c}"></button>`).join("")}</div>
+    <div class="set" style="gap:8px"><b>Or make your own</b>
+      <label class="slab">Colour<input type="range" id="cHue" min="0" max="359" value="330" class="hue"></label>
+      <label class="slab">Shade<input type="range" id="cLight" min="22" max="62" value="45" class="shade"></label></div>
+    <div class="cprev" id="cPrev"><b style="color:#1f1a17">Preview</b>
+      <div class="pbar" id="cBar"><i id="cBarI"></i></div>
+      <div class="pbtn" id="cBtn">Your buttons look like this</div></div>
+    <button type="button" class="btn" id="cUse">Use this colour</button>
+    <button type="button" class="ghost" id="cCancel">Cancel</button>`;
+  const paint = () => { const t = customTheme(pick).light;
+    q("#cPrev").style.background = t.bg; q("#cBar").style.background = t.sunk; q("#cBarI").style.background = `linear-gradient(90deg,${t.accent},${t.fire})`;
+    const bt = q("#cBtn"); bt.style.background = t.accent; bt.style.color = t.ink2;
+    box.querySelectorAll("[data-c]").forEach(d => d.setAttribute("aria-pressed", d.dataset.c.toLowerCase() === pick.toLowerCase()));
+    q("#cLight").style.setProperty("--h", q("#cHue").value); };
+  const fromSliders = () => { pick = hslHex(Number(q("#cHue").value), 78, Number(q("#cLight").value)); paint(); };
+  q("#cHue").addEventListener("input", fromSliders); q("#cLight").addEventListener("input", fromSliders);
+  box.querySelectorAll("[data-c]").forEach(d => d.onclick = () => { pick = d.dataset.c; paint(); });
+  q("#cUse").onclick = () => { S.settings = {...S.settings, theme:"custom", custom: pick}; applySettings(); persist(); closeSheet(); toast("Your colour is set"); };
+  q("#cCancel").onclick = closeSheet;
+  paint();
 }
 
-{ const cb = document.getElementById("coachTabBtn"); if (cb && !API) cb.hidden = true; }
+/* ---------- earned game: Glow Drop (5 minutes a day, unlocks at 50%) ---------- */
+const GAME_MS = 5 * 60 * 1000, GN = 7, GEMS = [["#ef4444","●"],["#f59e0b","▲"],["#22c55e","■"],["#3b82f6","◆"],["#a855f7","★"],["#ec4899","♥"]];
+function gameLeft(){ const d = S.days[keyOf(new Date())]; return Math.max(0, GAME_MS - ((d && d.playMs) || 0)); }
+function gameCard(pct){
+  const left = gameLeft(), mins = Math.ceil(left / 60000), open = pct >= .5;
+  return `<div class="card wind"><div class="windrow"><span class="windic">${open ? "🎮" : "🔒"}</span><div><b>Glow Drop</b><p class="muted">${!open ? `Hit 50% of today's checklist to unlock 5 minutes of play.` : left ? `${mins} min of play left today. You earned it.` : "That's your 5 minutes for today. Time to wind down."}</p></div>
+    ${open && left ? `<button type="button" class="btn small" id="playBtn">Play</button>` : ""}</div>
+    <div class="windrow"><span class="windic">🌙</span><div><b>Night wind-down</b><p class="muted">${(S.days[keyOf(new Date())] || {}).wind ? "Done tonight. Sleep well." : "3 wins, tomorrow's #1 job, phone away. Two minutes."}</p></div><button type="button" class="ghost small" id="windBtn">${(S.days[keyOf(new Date())] || {}).wind ? "View" : "Start"}</button></div></div>`;
+}
+function openGame(){
+  const k = keyOf(new Date()); let grid = [], sel = null, score = 0, busy = false, last = Date.now(), timer = null, ended = false;
+  const best = () => (S.gameBest || 0);
+  const ov = document.createElement("div"); ov.className = "gameov"; ov.setAttribute("role", "dialog"); ov.setAttribute("aria-label", "Glow Drop game");
+  ov.innerHTML = `<div class="gtop"><button type="button" class="ghost small" id="gClose">Done</button><div class="gscore"><b id="gScore">0</b><small>Best ${best()}</small></div><div class="gtime" id="gTime">5:00</div></div>
+    <div class="gbar"><i id="gBar"></i></div><div class="gboard" id="gBoard"></div><p class="muted gtip">Swap two gems next to each other to match 3 or more.</p>`;
+  document.body.appendChild(ov); document.body.style.overflow = "hidden";
+  const B = ov.querySelector("#gBoard"), rnd = () => Math.floor(Math.random() * GEMS.length);
+  const at = (r, c) => (r >= 0 && r < GN && c >= 0 && c < GN) ? grid[r][c] : -1;
+  const findMatches = () => { const m = new Set();
+    for (let r = 0; r < GN; r++) for (let c = 0; c < GN; c++) { const v = grid[r][c]; if (v < 0) continue;
+      if (c <= GN - 3 && at(r, c+1) === v && at(r, c+2) === v) { let e = c; while (at(r, e) === v) { m.add(r*GN+e); e++; } }
+      if (r <= GN - 3 && at(r+1, c) === v && at(r+2, c) === v) { let e = r; while (at(e, c) === v) { m.add(e*GN+c); e++; } } }
+    return m; };
+  const hasMove = () => { for (let r = 0; r < GN; r++) for (let c = 0; c < GN; c++) for (const [dr, dc] of [[0,1],[1,0]]) { const r2 = r+dr, c2 = c+dc; if (r2 >= GN || c2 >= GN) continue;
+      [grid[r][c], grid[r2][c2]] = [grid[r2][c2], grid[r][c]]; const ok = findMatches().size > 0; [grid[r][c], grid[r2][c2]] = [grid[r2][c2], grid[r][c]]; if (ok) return true; } return false; };
+  const fresh = () => { do { grid = Array.from({length: GN}, () => Array.from({length: GN}, rnd)); while (findMatches().size) findMatches().forEach(i => grid[Math.floor(i/GN)][i%GN] = rnd()); } while (!hasMove()); };
+  const draw = (pop = new Set(), drop = new Set()) => {
+    B.innerHTML = grid.map((row, r) => row.map((v, c) => { const i = r*GN+c, g = GEMS[v] || ["transparent",""];
+      return `<button type="button" class="gem ${sel === i ? "sel" : ""} ${pop.has(i) ? "pop" : ""} ${drop.has(i) ? "drop" : ""}" data-i="${i}" style="--g:${g[0]}" aria-label="gem">${g[1]}</button>`; }).join("")).join("");
+    ov.querySelector("#gScore").textContent = score; };
+  const wait = ms => new Promise(r => setTimeout(r, ms));
+  const resolve = async () => { let combo = 1;
+    while (true) { const m = findMatches(); if (!m.size) break;
+      score += m.size * 10 * combo; draw(m); await wait(230);
+      m.forEach(i => grid[Math.floor(i/GN)][i%GN] = -1);
+      const dropped = new Set();
+      for (let c = 0; c < GN; c++) { const col = []; for (let r = GN-1; r >= 0; r--) if (grid[r][c] >= 0) col.push(grid[r][c]);
+        for (let r = GN-1, j = 0; r >= 0; r--, j++) { const nv = j < col.length ? col[j] : rnd(); if (grid[r][c] !== nv) dropped.add(r*GN+c); grid[r][c] = nv; } }
+      draw(new Set(), dropped); await wait(200); combo++; }
+    if (combo > 2) toast(combo > 3 ? "Huge combo! 🔥" : "Combo! ✨");
+    if (!hasMove()) { toast("No moves left, shuffling"); fresh(); draw(); } };
+  const trySwap = async (a, b) => { if (busy || ended) return; const [r1, c1, r2, c2] = [Math.floor(a/GN), a%GN, Math.floor(b/GN), b%GN];
+    if (Math.abs(r1-r2) + Math.abs(c1-c2) !== 1) { sel = b; draw(); return; }
+    busy = true; sel = null; [grid[r1][c1], grid[r2][c2]] = [grid[r2][c2], grid[r1][c1]]; draw();
+    if (!findMatches().size) { await wait(180); [grid[r1][c1], grid[r2][c2]] = [grid[r2][c2], grid[r1][c1]]; draw(); if (navigator.vibrate) navigator.vibrate(20); }
+    else await resolve();
+    busy = false; };
+  let downI = null, dx = 0, dy = 0;
+  B.addEventListener("pointerdown", e => { const t = e.target.closest(".gem"); if (!t) return; downI = Number(t.dataset.i); dx = e.clientX; dy = e.clientY; });
+  B.addEventListener("pointerup", e => { if (downI == null) return; const mx = e.clientX - dx, my = e.clientY - dy, i = downI; downI = null;
+    if (Math.max(Math.abs(mx), Math.abs(my)) > 18) { const r = Math.floor(i/GN), c = i%GN, [r2, c2] = Math.abs(mx) > Math.abs(my) ? [r, c + Math.sign(mx)] : [r + Math.sign(my), c];
+      if (r2 >= 0 && r2 < GN && c2 >= 0 && c2 < GN) trySwap(i, r2*GN+c2); return; }
+    if (sel == null) { sel = i; draw(); } else if (sel === i) { sel = null; draw(); } else trySwap(sel, i); });
+  const save = () => { const d = day(k), now = Date.now(); d.playMs = Math.min(GAME_MS, (d.playMs || 0) + (now - last)); last = now; if (score > best()) S.gameBest = score; persist(); };
+  const tick = () => { if (document.hidden) { last = Date.now(); return; } save(); const left = gameLeft(), m = Math.floor(left/60000), sec = Math.floor(left/1000) % 60;
+    ov.querySelector("#gTime").textContent = `${m}:${pad(sec)}`; ov.querySelector("#gBar").style.width = (left / GAME_MS * 100) + "%"; if (!left) finish(); };
+  const finish = () => { if (ended) return; ended = true; clearInterval(timer); save();
+    ov.querySelector(".gboard").outerHTML = `<div class="gend"><div style="font-size:44px">🌙</div><h2>That's your 5 minutes</h2><p class="muted">You scored <b>${score}</b>${score >= best() && score ? " — a new best!" : ""}. Put the phone down soon, you've earned the rest.</p><button type="button" class="btn" id="gWind">Start my night wind-down</button></div>`;
+    ov.querySelector("#gWind").onclick = () => { close(); openWind(); }; };
+  const close = () => { if (!ended) { save(); } clearInterval(timer); ov.remove(); document.body.style.overflow = ""; renderApp(); };
+  ov.querySelector("#gClose").onclick = close;
+  fresh(); draw(); timer = setInterval(tick, 1000); tick();
+}
+
+/* ---------- night wind-down ---------- */
+function openWind(){
+  const k = keyOf(new Date()), d = day(k), w = d.wind || {wins:["","",""], top:"", phone:false, alarm:false, water:false};
+  const box = openSheet(), q = sel => box.querySelector(sel);
+  box.innerHTML = `<div class="grab" aria-hidden="true"></div><h2>🌙 Night wind-down</h2>
+    <div class="field"><span class="flabel">3 wins from today, big or small</span>${[0,1,2].map(i => `<input type="text" class="wwin" value="${esc(w.wins[i] || "")}" placeholder="${["e.g. Filmed 2 videos","e.g. Went to the gym","e.g. Replied to every DM"][i]}" maxlength="100" style="margin-top:6px">`).join("")}</div>
+    <div class="field"><label for="wTop">Tomorrow's #1 job</label><input type="text" id="wTop" value="${esc(w.top || "")}" placeholder="The one thing that would make tomorrow a win" maxlength="120"><small class="muted">It goes straight into tomorrow's checklist.</small></div>
+    <div class="field"><span class="flabel">Before bed</span>${[["phone","Phone on charge, away from the bed"],["alarm","Alarm set"],["water","Glass of water by the bed"]].map(([id,l]) => `<div class="setrow"><b style="font-weight:600">${l}</b><button type="button" class="switch" data-w="${id}" role="switch" aria-checked="${!!w[id]}" aria-label="${l}"><i></i></button></div>`).join("")}</div>
+    <button type="button" class="btn" id="wDone">Finish and say goodnight</button>
+    <button type="button" class="ghost" id="wCancel">Not now</button>`;
+  box.querySelectorAll("[data-w]").forEach(b => b.onclick = () => { const on = b.getAttribute("aria-checked") !== "true"; b.setAttribute("aria-checked", on); w[b.dataset.w] = on; });
+  q("#wCancel").onclick = closeSheet;
+  q("#wDone").onclick = () => {
+    w.wins = [...box.querySelectorAll(".wwin")].map(i => i.value.trim()); const top = q("#wTop").value.trim(), tmr = addDays(1);
+    if (top && top !== w.top) { S.tasks = (S.tasks || []).filter(t => !(t.fromWind === k)); S.tasks.unshift({id:"t" + Date.now(), text: top, done:false, due: tmr, priority:"high", notes:"", steps:[], fromWind: k}); }
+    w.top = top; w.at = Date.now(); d.wind = w; persist(); closeSheet(); goodnight();
+  };
+}
+function goodnight(){
+  const ov = document.createElement("div"); ov.className = "nightov"; ov.setAttribute("role", "dialog");
+  ov.innerHTML = `<div class="breath" aria-hidden="true"></div><h2>Goodnight${S.profile.name ? ", " + esc(S.profile.name) : ""}</h2><p id="bTxt">Breathe in…</p><p class="nsub">Follow the circle for a few breaths, then put the phone down.</p><button type="button" class="ghost small" id="nClose">Close</button>`;
+  document.body.appendChild(ov); let n = 0; const words = ["Breathe in…", "Hold…", "Breathe out…", "Hold…"];
+  const t = setInterval(() => { n = (n + 1) % 4; const el = ov.querySelector("#bTxt"); if (el) el.textContent = words[n]; }, 4000);
+  ov.querySelector("#nClose").onclick = () => { clearInterval(t); ov.remove(); renderApp(); };
+}
+
 /* ---------- keyboard handling ---------- */
 (function(){
   const root = document.documentElement, isField = el => el && el.matches && el.matches('input:not([type=checkbox]):not([type=radio]):not([type=color]):not([type=file]):not([type=button]):not([type=submit]), textarea, select');
@@ -680,7 +810,8 @@ function rwStats(){
   const todos = (S.tasks || []).filter(t => t.done).length, journal = (S.journal || []).length;
   let best = 0, run = 0; const days = Object.keys(S.days || {}).sort();
   if (days.length) { const d = new Date(days[0] + "T12:00:00"), end = new Date(); while (d <= end) { if (dayPct(keyOf(d)) >= .5) { run++; best = Math.max(best, run); } else if (keyOf(d) !== keyOf(end)) run = 0; d.setDate(d.getDate() + 1); } }
-  const xp = ticks * 10 + proofs * 5 + fullDays * 25 + todos * 15 + journal * 10 + best * 5;
+  const winds = Object.values(S.days || {}).filter(d => d.wind).length;
+  const xp = ticks * 10 + proofs * 5 + fullDays * 25 + todos * 15 + journal * 10 + best * 5 + winds * 15;
   let lv = 0; while (xp >= levelNeed(lv + 1)) lv++;
   const spent = (S.rewards || []).filter(r => r.claimed).reduce((a,r) => a + (Number(r.cost) || 0), 0);
   return {ticks, proofs, fullDays, todos, journal, best, xp, lv, name: LEVELS[Math.min(lv, LEVELS.length - 1)], from: levelNeed(lv), to: levelNeed(lv + 1), coins: Math.max(0, xp - spent)};
@@ -720,7 +851,7 @@ function renderRewards(A){
   const st = rwStats(); S.rewards = S.rewards || [];
   A.innerHTML = header() + `<button type="button" class="ghost" id="rwBack" style="align-self:flex-start">‹ Back</button>` + levelCard(st).replace('id="openRw"', 'id="lvNow" disabled') + `
     <div class="card set"><h2>How to earn points</h2><div class="earn">
-      ${[["Tick a routine task","+10"],["Add a proof photo","+5"],["Finish your whole day","+25"],["Finish a to-do","+15"],["Write a journal entry","+10"],["Each day of your best streak","+5"]].map(([a,b]) => `<div><span>${a}</span><b>${b}</b></div>`).join("")}
+      ${[["Finish a night wind-down","+15"],["Tick a routine task","+10"],["Add a proof photo","+5"],["Finish your whole day","+25"],["Finish a to-do","+15"],["Write a journal entry","+10"],["Each day of your best streak","+5"]].map(([a,b]) => `<div><span>${a}</span><b>${b}</b></div>`).join("")}
     </div><p class="muted" style="font-size:13px">Untick something and the points come off, so they always match what you really did.</p></div>
     <div class="card set"><div class="cardhead"><h2>Treat yourself</h2><span class="coins">${st.coins.toLocaleString()} pts to spend</span></div>
       <p class="muted" style="font-size:14px;margin-top:-4px">Add real rewards and give each one a price in points. When you have enough, claim it and enjoy it guilt-free.</p>
@@ -1090,6 +1221,7 @@ function renderApp(){
         <form id="addDay" class="set" style="gap:8px;margin-top:12px"><div class="addrow"><input type="text" id="adIn" placeholder="Add to this day…" aria-label="Add to this day" maxlength="140"><button class="btn small" type="submit">Add</button></div>
           <div class="chips" role="group" aria-label="How often">${[["once","Just this day"],["daily","Every day"]].map(([v,l]) => `<button type="button" class="chipb" data-admode="${v}" aria-pressed="${addMode===v}">${l}</button>`).join("")}${addMode === "daily" ? `<input type="time" id="adTime" value="${esc(addTime)}" aria-label="Time" style="width:auto;padding:6px 10px">` : ""}</div></form>
         <p class="muted" style="font-size:13px;margin-top:10px">${S.settings.proof ? "Tap a box to take a photo as proof. It's saved under Journal, then Playbook." : "Tap a box to tick it off. Photo proof is off in Settings."}</p></div>
+      ${isToday ? gameCard(pct) : ""}
       ${isToday ? (() => { const today = addDays(0), up = (S.tasks || []).filter(t => !t.done && (!t.due || t.due > today)).sort((a,b) => (a.due || "9999").localeCompare(b.due || "9999"));
         return up.length ? `<div class="card"><button type="button" class="ghost" id="laterBtn" style="width:100%">${showLater ? "Hide" : "Show"} coming up and someday (${up.length})</button>${showLater ? `<ul class="tlist" style="margin-top:10px">${up.map(t => `<li class="trow"><button class="tbody" type="button" data-open="${t.id}"><span class="ttext">${esc(t.text)}</span><span class="tmeta"><em>${t.due ? dueLabel(t.due) : "Someday"}</em></span></button><span class="chev" aria-hidden="true">›</span></li>`).join("")}</ul><p class="muted" style="font-size:13px;margin-top:8px">Tap one to give it a day. It shows up in that day's checklist.</p>` : ""}</div>` : ""; })() : ""}`;
     A.querySelector("#editBtn").onclick = () => { editing = true; draft = null; renderApp(); };
@@ -1101,6 +1233,8 @@ function renderApp(){
       if (addMode === "daily") { const t = (A.querySelector("#adTime") || {}).value || addTime; S.customRoutine = [...baseRoutine(), {id:"r" + Date.now(), time: t, title: v, hint:""}].sort((a,b) => a.time.localeCompare(b.time)); if (S.days[k]) delete S.days[k].routine; persist(); renderApp(); toast("Added to every day at " + t); }
       else { S.tasks.unshift({id:"t" + Date.now(), text: v, done:false, due: k, priority:"normal", notes:"", steps:[]}); persist(); renderApp(); toast(isToday ? "Added to today" : "Added to " + prettyDay(k)); } };
     const later = A.querySelector("#laterBtn"); if (later) later.onclick = () => { showLater = !showLater; renderApp(); };
+    const pb = A.querySelector("#playBtn"); if (pb) pb.onclick = openGame;
+    const wb = A.querySelector("#windBtn"); if (wb) wb.onclick = openWind;
     A.querySelector("#openRw").onclick = () => { tab = "rewards"; renderApp(); window.scrollTo(0,0); };
     A.querySelectorAll(".tickb[data-id]").forEach(b => b.onclick = () => {
       const id = b.dataset.id, dd = day(k);
@@ -1171,6 +1305,7 @@ function renderApp(){
         </div>
         <button class="btn small" type="button" id="sSave" style="align-self:flex-start">Save changes</button>
       </div>
+      <p class="muted" style="text-align:center;font-size:12.5px">Grindboard version 10</p>
       <div class="card set"><h2>Backup</h2>
         <p class="muted">Your plan is saved on this phone. Download a backup to keep it safe or to move it to a new phone. Photos stay on this phone.</p>
         <div class="addrow"><button class="btn small" id="bkDown" type="button">Download backup</button><label class="ghost" for="bkIn" style="cursor:pointer;display:inline-flex;align-items:center">Restore backup</label></div>
@@ -1270,7 +1405,10 @@ function bootWith(state){ S = state; if (S && S.profile) renderApp(); else rende
 (function(){ let ls = null; try { ls = JSON.parse(localStorage.getItem(LSKEY) || "null"); } catch(e){} bootWith(ls); })();
 (async () => {
   try { const all = await IDB.all(); for (const k in all) photoURLs[k] = URL.createObjectURL(all[k]); if (S && S.profile) renderApp(); } catch (e) {}
-  if ("serviceWorker" in navigator) { try { await navigator.serviceWorker.register("sw.js"); } catch (e) {} }
+  if ("serviceWorker" in navigator) { try { const reg = await navigator.serviceWorker.register("sw.js", {updateViaCache: "none"});
+    document.addEventListener("visibilitychange", async () => { if (document.hidden) return; try { reg.update();
+      const html = await fetch("index.html?v=" + Date.now(), {cache: "no-store"}).then(r => r.text()); const m = html.match(/gb-version" content="(\d+)/);
+      if (m && m[1] !== GB_VERSION && !document.querySelector(".gameov")) location.reload(); } catch (e) {} }); } catch (e) {} }
 })();
 </script>
 
