@@ -8,14 +8,14 @@
     "sync": "npm run copy-web && npx cap sync ios"
   },
   "dependencies": {
-    "@capacitor/core": "latest",
-    "@capacitor/ios": "latest",
-    "@capacitor/local-notifications": "latest",
-    "@capacitor/haptics": "latest",
-    "@capacitor/share": "latest",
-    "@capacitor/filesystem": "latest"
+    "@capacitor/core": "^8.6.0",
+    "@capacitor/ios": "^8.6.0",
+    "@capacitor/local-notifications": "^8.3.1",
+    "@capacitor/haptics": "^8.0.2",
+    "@capacitor/share": "^8.0.3",
+    "@capacitor/filesystem": "^8.1.5"
   },
   "devDependencies": {
-    "@capacitor/cli": "latest"
+    "@capacitor/cli": "^8.6.0"
   }
 }

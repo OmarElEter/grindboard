@@ -5,3 +5,4 @@ ios/App/App/capacitor.config.json
 ios/App/App/config.xml
 ios/App/build/
 ios/DerivedData/
+app/ios/App/xcodebuild.log
