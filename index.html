@@ -8,11 +8,11 @@
 <meta name="theme-color" content="#1a1614" media="(prefers-color-scheme: dark)">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="mobile-web-app-capable" content="yes">
-<meta name="gb-version" content="11">
+<meta name="gb-version" content="12">
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 <meta name="apple-mobile-web-app-title" content="Grindboard">
 <link rel="manifest" href="manifest.webmanifest">
-<script>window.GB_API = "https://grindboard-api.omareleter.workers.dev"; window.GB_VERSION = "11";</script>
+<script>window.GB_API = "https://grindboard-api.omareleter.workers.dev"; window.GB_VERSION = "12";</script>
 <link rel="icon" type="image/png" sizes="192x192" href="icon-192.png">
 <link rel="apple-touch-icon" href="apple-touch-icon.png">
 <style>html{-webkit-text-size-adjust:100%}body{margin:0}img{max-width:100%}[hidden]{display:none!important}
@@ -609,7 +609,7 @@ function md(t){
 }
 function renderCoach(A){
   S.coach = S.coach || [];
-  if (API && !auth) { A.innerHTML = header() + `<div class="card set"><h2>Your coach</h2><p class="muted">Create a free account to chat with your coach. It also backs up everything on this phone, so you never lose your streak.</p><div class="addrow"><button type="button" class="btn small" data-auth="signup">Create free account</button><button type="button" class="ghost" data-auth="login">Sign in</button></div></div>`;
+  if (API && !auth) { A.innerHTML = header() + `<div class="card set"><h2>Your coach</h2><p class="muted">Create a free account to chat with your coach. It also backs up everything on this device, so you never lose your streak.</p><div class="addrow"><button type="button" class="btn small" data-auth="signup">Create free account</button><button type="button" class="ghost" data-auth="login">Sign in</button></div></div>`;
     A.querySelectorAll("[data-auth]").forEach(b => b.onclick = () => openAuth(b.dataset.auth)); return; }
   const quick = S.coach.length ? ["Thanks!", "Explain that more", "Give me one thing to do now"] : ["Review my last 7 days", "What's holding me back?", "Plan my day tomorrow", "Motivate me"];
   A.innerHTML = header() + `
@@ -939,11 +939,11 @@ function agoText(t){ if (!t) return "not yet"; const m = Math.round((Date.now() 
 function paintSyncLabel(){ const el = document.getElementById("syncLbl"); if (el) el.textContent = "Saved to your account " + agoText(syncMeta.at); }
 function accountCard(){
   if (!API) return "";
-  if (!auth) return `<div class="card set acc"><h2>☁️ Your account</h2><p class="muted">Right now your Grindboard only lives on this phone. Create a free account and everything (streaks, journal, photos) is backed up and works on any phone.</p>
+  if (!auth) return `<div class="card set acc"><h2>☁️ Your account</h2><p class="muted">Right now your Grindboard only lives on this device. Create a free account and everything (streaks, journal, photos) is backed up and works on your phone and laptop.</p>
     <div class="addrow"><button type="button" class="btn small" data-auth="signup">Create free account</button><button type="button" class="ghost" data-auth="login">Sign in</button></div></div>`;
   return `<div class="card set acc"><h2>☁️ Your account</h2><p><b>${esc(auth.email)}</b></p><p class="muted" id="syncLbl">Saved to your account ${agoText(syncMeta.at)}</p>
     <div class="addrow"><button type="button" class="btn small" id="syncNow">Sync now</button><button type="button" class="ghost" id="signOut">Sign out</button></div>
-    <div id="soBox" hidden class="empty">Sign out? Your data stays on this phone and in your account. <div class="addrow" style="margin-top:10px"><button class="btn small" type="button" id="soYes">Sign out</button><button class="ghost" type="button" id="soNo">Cancel</button></div></div></div>`;
+    <div id="soBox" hidden class="empty">Sign out? Your data stays on this device and in your account. <div class="addrow" style="margin-top:10px"><button class="btn small" type="button" id="soYes">Sign out</button><button class="ghost" type="button" id="soNo">Cancel</button></div></div></div>`;
 }
 function wireAccount(A){
   A.querySelectorAll("[data-auth]").forEach(b => b.onclick = () => openAuth(b.dataset.auth));
@@ -956,14 +956,14 @@ function accountNudge(){
   if (!API || auth || !S || !S.profile) return "";
   let until = 0; try { until = Number(localStorage.getItem("gb-nudge") || 0); } catch (e) {}
   if (Date.now() < until) return "";
-  return `<div class="card nudge"><span style="font-size:24px">☁️</span><div><b>Don't lose your streak</b><p class="muted">Your data only lives on this phone. A free account backs it all up.</p></div><div class="nbtns"><button type="button" class="btn small" data-auth="signup">Back it up</button><button type="button" class="x" id="nudgeX" aria-label="Not now">×</button></div></div>`;
+  return `<div class="card nudge"><span style="font-size:24px">☁️</span><div><b>Don't lose your streak</b><p class="muted">Your data only lives on this device. A free account backs it all up.</p></div><div class="nbtns"><button type="button" class="btn small" data-auth="signup">Back it up</button><button type="button" class="x" id="nudgeX" aria-label="Not now">×</button></div></div>`;
 }
 function openAuth(mode){
   const box = openSheet(), q = sel => box.querySelector(sel); let m = mode || "signup", busy = false, show = false;
   const draw = (keep) => {
     const v = keep || {name: (S && S.profile && S.profile.name) || "", email: "", pw: ""};
     box.innerHTML = `<div class="grab" aria-hidden="true"></div><h2>${m === "signup" ? "Create your free account" : "Sign in"}</h2>
-      <p class="muted" style="margin-top:-6px">${m === "signup" ? (S && S.profile ? "Everything already on this phone gets saved into your account. Nothing is lost." : "Your Grindboard, backed up and on any phone.") : "Sign in to get your Grindboard back on this phone."}</p>
+      <p class="muted" style="margin-top:-6px">${m === "signup" ? (S && S.profile ? "Everything already on this device gets saved into your account. Nothing is lost." : "Your Grindboard, backed up and on any device.") : "Sign in to get your Grindboard on this device."}</p>
       ${m === "signup" ? `<div class="field"><label for="auName">First name</label><input type="text" id="auName" autocomplete="given-name" value="${esc(v.name)}"></div>` : ""}
       <div class="field"><label for="auEmail">Email</label><input type="email" id="auEmail" autocomplete="email" inputmode="email" autocapitalize="off" value="${esc(v.email)}"></div>
       <div class="field"><label for="auPw">Password</label><div class="addrow"><input type="${show ? "text" : "password"}" id="auPw" autocomplete="${m === "signup" ? "new-password" : "current-password"}" value="${esc(v.pw)}" placeholder="${m === "signup" ? "At least 6 characters" : ""}"><button type="button" class="ghost" id="auShow">${show ? "Hide" : "Show"}</button></div></div>
@@ -1004,14 +1004,14 @@ function chooseCopy(remote, updated){
   const box = openSheet(); let r = null; try { r = JSON.parse(remote); } catch (e) {}
   const pl = (n, w) => n + " " + w + (n === 1 ? "" : "s"), count = st => st ? pl(Object.keys(st.days || {}).length, "day") + ", " + pl((st.journal || []).length, "journal entry").replace("entrys", "entries") : "";
   box.innerHTML = `<div class="grab" aria-hidden="true"></div><h2>Which one should we keep?</h2>
-    <p class="muted">This phone and your account both have a Grindboard. Pick the one to keep. The other one gets replaced.</p>
+    <p class="muted">This device and your account both have a Grindboard. Pick the one to keep. The other one gets replaced.</p>
     <button type="button" class="btn" id="ccAcc">Use my account<br><small style="font-weight:500">${esc(count(r))}, saved ${agoText(updated)}</small></button>
     <p class="muted" style="font-size:13px">If this is a different person (like a sister), tap Cancel and create her own account instead.</p>
-    <button type="button" class="ghost" id="ccPhone">Keep this phone's data<br><small>${esc(count(S))}</small></button>`;
+    <button type="button" class="ghost" id="ccPhone">Keep this device's data<br><small>${esc(count(S))}</small></button>`;
   box.insertAdjacentHTML("beforeend", `<button type="button" class="ghost" id="ccCancel">Cancel</button>`);
   box.querySelector("#ccCancel").onclick = async () => { try { await api("POST", "/auth/logout", {}); } catch (e) {} signedOut(); closeSheet(); };
   box.querySelector("#ccAcc").onclick = () => { closeSheet(); useRemote(remote, updated); toast("Loaded from your account ✅"); };
-  box.querySelector("#ccPhone").onclick = async () => { syncMeta.updated = updated; await pushSync(true); closeSheet(); toast("This phone's data is now in your account ✅"); };
+  box.querySelector("#ccPhone").onclick = async () => { syncMeta.updated = updated; await pushSync(true); closeSheet(); toast("This device's data is now in your account ✅"); };
 }
 if (API) {
   document.addEventListener("visibilitychange", () => { if (!auth) return; if (document.hidden) { if (syncMeta.dirty) pushSync(); } else pullSync(); });
@@ -1595,7 +1595,7 @@ function renderApp(){
         </div>
         <button class="btn small" type="button" id="sSave" style="align-self:flex-start">Save changes</button>
       </div>
-      <p class="muted" style="text-align:center;font-size:12.5px">Grindboard version 11</p>
+      <p class="muted" style="text-align:center;font-size:12.5px">Grindboard version 12</p>
       <div class="card set"><h2>Backup</h2>
         <p class="muted">Your plan is saved on this phone. Download a backup to keep it safe or to move it to a new phone. Photos stay on this phone.</p>
         <div class="addrow"><button class="btn small" id="bkDown" type="button">Download backup</button><label class="ghost" for="bkIn" style="cursor:pointer;display:inline-flex;align-items:center">Restore backup</label></div>
