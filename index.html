@@ -8,11 +8,11 @@
 <meta name="theme-color" content="#1a1614" media="(prefers-color-scheme: dark)">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="mobile-web-app-capable" content="yes">
-<meta name="gb-version" content="10">
+<meta name="gb-version" content="11">
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 <meta name="apple-mobile-web-app-title" content="Grindboard">
 <link rel="manifest" href="manifest.webmanifest">
-<script>window.GB_API = "https://grindboard-api.omareleter.workers.dev"; window.GB_VERSION = "10";</script>
+<script>window.GB_API = "https://grindboard-api.omareleter.workers.dev"; window.GB_VERSION = "11";</script>
 <link rel="icon" type="image/png" sizes="192x192" href="icon-192.png">
 <link rel="apple-touch-icon" href="apple-touch-icon.png">
 <style>html{-webkit-text-size-adjust:100%}body{margin:0}img{max-width:100%}[hidden]{display:none!important}
@@ -330,6 +330,22 @@ body.typing{padding-bottom:24px}
 .nightov .nsub{opacity:.55;font-size:14px;max-width:280px}
 .breath{width:140px;height:140px;border-radius:50%;background:radial-gradient(circle,#8b7cf6,#4c3fa8);box-shadow:0 0 60px #6d5dd8;animation:breathe 16s ease-in-out infinite}
 @keyframes breathe{0%{transform:scale(.6)}25%{transform:scale(1)}50%{transform:scale(1)}75%{transform:scale(.6)}100%{transform:scale(.6)}}
+
+.chips2{display:flex;gap:8px;align-items:center}
+.lvchip{border:0;background:var(--accent-soft);color:var(--accent);border-radius:999px;padding:7px 12px;font-weight:700;font-size:14px;white-space:nowrap}
+@media (max-width:380px){.sl{display:none}}
+.nudge{display:grid;grid-template-columns:auto 1fr;gap:12px;align-items:center;border:1px solid var(--accent);background:var(--accent-soft)}
+.nudge p{font-size:13.5px;margin:2px 0 0}
+.nudge .nbtns{grid-column:1 / -1;display:flex;gap:8px;align-items:center;justify-content:flex-end}
+.err{color:var(--loss);font-weight:600;font-size:14px;margin:0}
+.daynav.small button{width:34px;height:34px}
+.acc p{margin:0}
+
+.weekly p{margin:0;font-size:14.5px}
+.wkbars{display:grid;grid-template-columns:repeat(7,1fr);gap:8px;height:90px;align-items:end}
+.wkbars div{height:100%;display:flex;flex-direction:column;justify-content:flex-end;align-items:center;gap:4px}
+.wkbars i{display:block;width:100%;border-radius:8px;background:linear-gradient(180deg,var(--accent),var(--fire))}
+.wkbars small{font-size:11px;color:var(--muted);font-weight:700}
 @media (prefers-reduced-motion:reduce){*{transition:none!important;animation:none!important}.confetti{display:none}}
 </style>
 
@@ -340,7 +356,6 @@ body.typing{padding-bottom:24px}
 <div class="tabs" id="tabs" hidden><nav>
   <button data-tab="today" type="button"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="4" width="18" height="17" rx="3"/><path d="M3 9h18M8 2v4M16 2v4"/></svg>Today</button>
   <button data-tab="coach" type="button" id="coachTabBtn"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 12a8 8 0 0 1-11.6 7.1L4 20l1-4.6A8 8 0 1 1 21 12z"/><path d="M8.5 11h.01M12 11h.01M15.5 11h.01" stroke-width="3" stroke-linecap="round"/></svg>Coach</button>
-  <button data-tab="numbers" type="button"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 20V10M10 20V4M16 20v-7M22 20H2"/></svg>Numbers</button>
   <button data-tab="journal" type="button"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 4h12a4 4 0 0 1 4 4v12H8a4 4 0 0 1-4-4z"/><path d="M8 9h8M8 13h6"/></svg>Journal</button>
   <button data-tab="settings" type="button"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.7 1.7 0 0 0 .3 1.8l.1.1a2 2 0 1 1-2.8 2.8l-.1-.1a1.7 1.7 0 0 0-1.8-.3 1.7 1.7 0 0 0-1 1.5V21a2 2 0 1 1-4 0v-.1a1.7 1.7 0 0 0-1.1-1.5 1.7 1.7 0 0 0-1.8.3l-.1.1a2 2 0 1 1-2.8-2.8l.1-.1a1.7 1.7 0 0 0 .3-1.8 1.7 1.7 0 0 0-1.5-1H3a2 2 0 1 1 0-4h.1a1.7 1.7 0 0 0 1.5-1.1 1.7 1.7 0 0 0-.3-1.8l-.1-.1a2 2 0 1 1 2.8-2.8l.1.1a1.7 1.7 0 0 0 1.8.3H9a1.7 1.7 0 0 0 1-1.5V3a2 2 0 1 1 4 0v.1a1.7 1.7 0 0 0 1 1.5 1.7 1.7 0 0 0 1.8-.3l.1-.1a2 2 0 1 1 2.8 2.8l-.1.1a1.7 1.7 0 0 0-.3 1.8V9a1.7 1.7 0 0 0 1.5 1H21a2 2 0 1 1 0 4h-.1a1.7 1.7 0 0 0-1.5 1z"/></svg>Settings</button>
 </nav></div>
@@ -396,6 +411,7 @@ function toast(msg){ const t = document.getElementById("toast"); t.textContent =
 
 let saveT = null, saving = Promise.resolve();
 function persist(){
+  if (typeof markDirty === "function") markDirty();
   if (typeof syncPushSoon === "function") syncPushSoon();
   // prune old days to keep the document small
   const keys = Object.keys(S.days||{}).sort(); while (keys.length > 120) delete S.days[keys.shift()];
@@ -420,6 +436,7 @@ function renderOnboarding(){
       <button class="btn" id="next" type="button" ${o.path?"":"disabled"}>Continue</button>`;
     A.querySelectorAll(".path").forEach(b => b.onclick = () => { o.path = b.dataset.path; renderOnboarding(); });
     A.querySelector("#next").onclick = () => { o.step = 2; renderOnboarding(); };
+    if (API) { A.insertAdjacentHTML("beforeend", `<button type="button" class="ghost" id="obLogin" style="margin-top:4px">Already have an account? Sign in</button>`); A.querySelector("#obLogin").onclick = () => openAuth("login"); }
   } else if (o.step === 2) {
     A.innerHTML = `<div class="brand">Grind<span>board</span></div>${steps}
       <h1>Set up your day</h1>
@@ -518,14 +535,16 @@ const VAPID = "BPAevOlTry9dJFulfjc_aFErrAS1yDGua_m365qrCRiTOkiCfAjjwm7KxLV3AwPnH
 const IOS = /iPhone|iPad|iPod/.test(navigator.userAgent), STANDALONE = (window.matchMedia && matchMedia("(display-mode: standalone)").matches) || navigator.standalone === true;
 const PUSH_OK = !!API && "serviceWorker" in navigator && "PushManager" in window && "Notification" in window;
 async function apiPost(path, body){
-  const r = await fetch(API + path, {method:"POST", headers:{"Content-Type":"application/json"}, body: JSON.stringify(body)});
+  const r = await fetch(API + path, {method:"POST", headers:{"Content-Type":"application/json", ...authHeaders()}, body: JSON.stringify(body)});
   let data = {}; try { data = await r.json(); } catch (e) {}
-  if (!r.ok) throw new Error(data.error || "Couldn't reach the server");
+  if (r.status === 401 && data.needAuth && auth) signedOut(true);
+  if (!r.ok) throw Object.assign(new Error(data.error || "Couldn't reach the server"), {needAuth: !!data.needAuth});
   return data;
 }
 function pushItems(){
   const items = baseRoutine().filter(x => /^\d{2}:\d{2}$/.test(x.time || "")).map(x => ({t: x.time, title: x.title}));
-  const eve = (S.settings && S.settings.eve) || "21:00"; if (/^\d{2}:\d{2}$/.test(eve)) items.push({t: eve, title: "Log your day in Grindboard"});
+  const eve = (S.settings && S.settings.eve) || "21:00"; if (/^\d{2}:\d{2}$/.test(eve)) items.push({t: eve, title: "Time for your night wind-down 🌙", body: "3 wins, tomorrow's #1 job, phone away."});
+  items.push({t: "18:00", dow: 0, title: "Your weekly review is ready 📊", body: "Tap to see how your week went and share it."});
   return items;
 }
 const tzName = () => { try { return Intl.DateTimeFormat().resolvedOptions().timeZone || "Europe/London"; } catch (e) { return "Europe/London"; } };
@@ -590,6 +609,8 @@ function md(t){
 }
 function renderCoach(A){
   S.coach = S.coach || [];
+  if (API && !auth) { A.innerHTML = header() + `<div class="card set"><h2>Your coach</h2><p class="muted">Create a free account to chat with your coach. It also backs up everything on this phone, so you never lose your streak.</p><div class="addrow"><button type="button" class="btn small" data-auth="signup">Create free account</button><button type="button" class="ghost" data-auth="login">Sign in</button></div></div>`;
+    A.querySelectorAll("[data-auth]").forEach(b => b.onclick = () => openAuth(b.dataset.auth)); return; }
   const quick = S.coach.length ? ["Thanks!", "Explain that more", "Give me one thing to do now"] : ["Review my last 7 days", "What's holding me back?", "Plan my day tomorrow", "Motivate me"];
   A.innerHTML = header() + `
     <div class="card set coachcard"><div class="cardhead"><h2>Your coach</h2>${S.coach.length ? `<button type="button" class="ghost small" id="cClear">New chat</button>` : ""}</div>
@@ -752,6 +773,7 @@ function openWind(){
   box.innerHTML = `<div class="grab" aria-hidden="true"></div><h2>🌙 Night wind-down</h2>
     <div class="field"><span class="flabel">3 wins from today, big or small</span>${[0,1,2].map(i => `<input type="text" class="wwin" value="${esc(w.wins[i] || "")}" placeholder="${["e.g. Filmed 2 videos","e.g. Went to the gym","e.g. Replied to every DM"][i]}" maxlength="100" style="margin-top:6px">`).join("")}</div>
     <div class="field"><label for="wTop">Tomorrow's #1 job</label><input type="text" id="wTop" value="${esc(w.top || "")}" placeholder="The one thing that would make tomorrow a win" maxlength="120"><small class="muted">It goes straight into tomorrow's checklist.</small></div>
+    <div class="field"><span class="flabel">Today's numbers</span><div class="nums">${PATHS[S.profile.path].nums.map(([id,label,unit]) => `<label for="wn-${id}">${label}${unit ? ` (${unit})` : ""}<input type="number" id="wn-${id}" step="any" inputmode="decimal" value="${esc(d.nums?.[id] ?? "")}" placeholder="0"></label>`).join("")}</div></div>
     <div class="field"><span class="flabel">Before bed</span>${[["phone","Phone on charge, away from the bed"],["alarm","Alarm set"],["water","Glass of water by the bed"]].map(([id,l]) => `<div class="setrow"><b style="font-weight:600">${l}</b><button type="button" class="switch" data-w="${id}" role="switch" aria-checked="${!!w[id]}" aria-label="${l}"><i></i></button></div>`).join("")}</div>
     <button type="button" class="btn" id="wDone">Finish and say goodnight</button>
     <button type="button" class="ghost" id="wCancel">Not now</button>`;
@@ -759,6 +781,7 @@ function openWind(){
   q("#wCancel").onclick = closeSheet;
   q("#wDone").onclick = () => {
     w.wins = [...box.querySelectorAll(".wwin")].map(i => i.value.trim()); const top = q("#wTop").value.trim(), tmr = addDays(1);
+    d.nums = d.nums || {}; PATHS[S.profile.path].nums.forEach(([id]) => { const v = q("#wn-" + id).value; d.nums[id] = v === "" ? "" : Number(v); });
     if (top && top !== w.top) { S.tasks = (S.tasks || []).filter(t => !(t.fromWind === k)); S.tasks.unshift({id:"t" + Date.now(), text: top, done:false, due: tmr, priority:"high", notes:"", steps:[], fromWind: k}); }
     w.top = top; w.at = Date.now(); d.wind = w; persist(); closeSheet(); goodnight();
   };
@@ -769,6 +792,230 @@ function goodnight(){
   document.body.appendChild(ov); let n = 0; const words = ["Breathe in…", "Hold…", "Breathe out…", "Hold…"];
   const t = setInterval(() => { n = (n + 1) % 4; const el = ov.querySelector("#bTxt"); if (el) el.textContent = words[n]; }, 4000);
   ov.querySelector("#nClose").onclick = () => { clearInterval(t); ov.remove(); renderApp(); };
+}
+
+
+
+/* ---------- weekly review + share card ---------- */
+function weekStats(){
+  const days = [...Array(7)].map((_, i) => addDays(-6 + i)), pcts = days.map(k => dayPct(k));
+  const avg = Math.round(pcts.reduce((a, b) => a + b, 0) / 7 * 100), hit = pcts.filter(x => x >= .5).length;
+  const prev = [...Array(7)].map((_, i) => dayPct(addDays(-13 + i))), prevAvg = Math.round(prev.reduce((a, b) => a + b, 0) / 7 * 100);
+  const money = moneyIn(7), journal = (S.journal || []).filter(e => e.date >= days[0]).length;
+  let win = ""; for (let i = 6; i >= 0 && !win; i--) { const w = (S.days[days[i]] || {}).wind; if (w && w.wins) win = w.wins.find(Boolean) || ""; }
+  if (!win) { const j = (S.journal || []).filter(e => e.date >= days[0] && (e.worked || (isNum(e.result) && e.result > 0))).pop(); if (j) win = j.what || j.notes || ""; }
+  let r = {lv: 0, name: "Rookie"}; try { r = rwStats(); } catch (e) {}
+  return {days, pcts, avg, hit, prevAvg, money, journal, win: String(win).slice(0, 70), streak: streak(), level: r.name, lvNum: r.lv + 1};
+}
+function weeklyCard(){
+  const now = new Date(), dow = now.getDay(), show = (dow === 0 && now.getHours() >= 12) || dow === 1;
+  if (!show) return "";
+  const wk = keyOf(new Date(now.getFullYear(), now.getMonth(), now.getDate() - (dow === 1 ? 1 : 0)));
+  let hidden = ""; try { hidden = localStorage.getItem("gb-week-hide") || ""; } catch (e) {}
+  if (hidden === wk) return "";
+  const w = weekStats(), up = w.avg - w.prevAvg;
+  return `<div class="card weekly"><div class="cardhead"><h2>📊 Your week</h2><button type="button" class="x" id="wkX" data-wk="${wk}" aria-label="Hide">×</button></div>
+    <div class="wkbars">${w.pcts.map((x, i) => `<div><i style="height:${Math.max(6, Math.round(x * 100))}%"></i><small>${"SMTWTFS"[new Date(w.days[i] + "T12:00:00").getDay()]}</small></div>`).join("")}</div>
+    <p><b>${w.avg}%</b> of your checklist done on average${w.prevAvg || w.avg ? `, <span class="${up >= 0 ? "pos" : "neg"}">${up >= 0 ? "▲" : "▼"} ${Math.abs(up)}%</span> on last week` : ""}. ${w.hit}/7 days kept the streak.</p>
+    <div class="addrow">${API ? `<button type="button" class="btn small" id="wkReview">Get my coach review</button>` : ""}<button type="button" class="ghost" id="wkShare">📸 Share my week</button></div></div>`;
+}
+function wireWeekly(){
+  const x = document.getElementById("wkX"); if (x) x.onclick = () => { try { localStorage.setItem("gb-week-hide", x.dataset.wk); } catch (e) {} renderApp(); };
+  const sh = document.getElementById("wkShare"); if (sh) sh.onclick = shareWeek;
+  const rv = document.getElementById("wkReview"); if (rv) rv.onclick = () => { tab = "coach"; renderApp(); setTimeout(() => { const i = document.getElementById("cIn"), f = document.getElementById("cForm");
+    if (i && f) { i.value = "Give me my weekly review. Compare this week with last week: what went well, what didn't, and one thing to focus on next week."; f.requestSubmit ? f.requestSubmit() : f.dispatchEvent(new Event("submit", {cancelable: true})); } }, 50); };
+}
+async function shareWeek(){
+  const w = weekStats(), cs = getComputedStyle(document.documentElement), accent = cs.getPropertyValue("--accent").trim() || "#b5674a", fire = cs.getPropertyValue("--fire").trim() || "#d9822b";
+  const W = 1080, H = 1920, c = document.createElement("canvas"); c.width = W; c.height = H; const g = c.getContext("2d");
+  try { await document.fonts.ready; } catch (e) {}
+  const disp = (cs.getPropertyValue("--display").trim() || "system-ui"), body = (cs.getPropertyValue("--body").trim() || "system-ui");
+  const grad = g.createLinearGradient(0, 0, W, H); grad.addColorStop(0, accent); grad.addColorStop(1, fire); g.fillStyle = grad; g.fillRect(0, 0, W, H);
+  g.fillStyle = "rgba(255,255,255,.08)"; g.beginPath(); g.arc(W * .9, H * .12, 380, 0, 7); g.fill(); g.beginPath(); g.arc(W * .05, H * .88, 300, 0, 7); g.fill();
+  g.fillStyle = "#fff"; g.textBaseline = "alphabetic";
+  const t = (txt, x, y, size, weight, font, align) => { g.font = `${weight} ${size}px ${font}`; g.textAlign = align || "left"; g.fillText(txt, x, y); };
+  t("GRINDBOARD", 90, 170, 44, 800, disp); g.globalAlpha = .85; t("MY WEEK" + (S.profile.name ? " · " + S.profile.name.toUpperCase() : ""), 90, 230, 34, 600, body); g.globalAlpha = 1;
+  const d0 = new Date(w.days[0] + "T12:00:00"), d6 = new Date(w.days[6] + "T12:00:00"), fmt = d => d.toLocaleDateString("en-GB", {day: "numeric", month: "short"});
+  g.globalAlpha = .75; t(fmt(d0) + " – " + fmt(d6), 90, 280, 32, 500, body); g.globalAlpha = 1;
+  if (w.streak > 0) { t(w.streak + "", 90, 600, 300, 800, disp); t((w.streak === 1 ? "day" : "days") + " streak 🔥", 90, 690, 58, 700, body); }
+  else { t(w.avg + "%", 90, 600, 260, 800, disp); t("of my checklist done 💪", 90, 690, 58, 700, body); }
+  const box = (x, y, big, small) => { g.fillStyle = "rgba(255,255,255,.16)"; g.beginPath(); g.roundRect ? g.roundRect(x, y, 430, 230, 36) : g.rect(x, y, 430, 230); g.fill(); g.fillStyle = "#fff"; t(big, x + 40, y + 125, 92, 800, disp); g.globalAlpha = .85; t(small, x + 40, y + 185, 34, 600, body); g.globalAlpha = 1; };
+  box(90, 790, w.streak > 0 ? w.avg + "%" : w.journal + "", w.streak > 0 ? "of my checklist done" : "journal entries"); box(560, 790, w.hit + "/7", "days on track");
+  const p = PATHS[S.profile.path], hasMoney = !!p.money && w.money;
+  box(90, 1060, hasMoney ? "£" + Math.round(w.money).toLocaleString("en-GB") : (w.streak > 0 ? w.journal + "" : "Day 1"), hasMoney ? "made this week" : (w.streak > 0 ? "journal entries" : "of the grind")); box(560, 1060, "Lv " + w.lvNum, w.level);
+  const bx = 90, by = 1360, bw = 900, bh = 200; g.globalAlpha = .9; t("THIS WEEK", bx, by - 20, 30, 700, body); g.globalAlpha = 1;
+  w.pcts.forEach((x, i) => { const cw = bw / 7, h = Math.max(14, x * bh); g.fillStyle = x >= .5 ? "#fff" : "rgba(255,255,255,.35)"; g.beginPath(); g.roundRect ? g.roundRect(bx + i * cw + 14, by + bh - h + 10, cw - 28, h, 16) : g.rect(bx + i * cw + 14, by + bh - h + 10, cw - 28, h); g.fill();
+    t("SMTWTFS"[new Date(w.days[i] + "T12:00:00").getDay()], bx + i * cw + cw / 2, by + bh + 64, 32, 700, body, "center"); });
+  if (w.win) { g.globalAlpha = .9; t("BEST WIN", 90, 1720, 30, 700, body); g.globalAlpha = 1; let line = "“" + w.win + "”"; g.font = `700 46px ${body}`; while (g.measureText(line).width > 900 && line.length > 10) line = line.slice(0, -2) + "…”"; t(line, 90, 1785, 46, 700, body); }
+  g.globalAlpha = .7; t("omareleter.github.io/grindboard", W / 2, 1880, 28, 600, body, "center"); g.globalAlpha = 1;
+  const blob = await new Promise(r => c.toBlob(r, "image/png")); if (!blob) { toast("Couldn't make the image"); return; }
+  const file = new File([blob], "my-grindboard-week.png", {type: "image/png"});
+  try { if (navigator.canShare && navigator.canShare({files: [file]})) { await navigator.share({files: [file], title: "My Grindboard week"}); return; } } catch (e) { if (e && e.name === "AbortError") return; }
+  const url = URL.createObjectURL(blob), bx2 = openSheet();
+  bx2.innerHTML = `<div class="grab" aria-hidden="true"></div><h2>Your week</h2><img src="${url}" alt="Your weekly summary" style="width:100%;border-radius:16px"><p class="muted">Press and hold the picture, then tap <b>Save</b> or <b>Share</b>.</p><a class="btn" href="${url}" download="my-grindboard-week.png" style="text-align:center;text-decoration:none">Download</a><button type="button" class="ghost" id="wkClose">Close</button>`;
+  bx2.querySelector("#wkClose").onclick = closeSheet;
+}
+
+/* ---------- account + cloud sync ---------- */
+const AUTHKEY = "gb-auth", SYNCKEY = "gb-sync";
+let auth = null; try { auth = JSON.parse(localStorage.getItem(AUTHKEY) || "null"); } catch (e) {}
+let syncMeta = {updated: 0, dirty: false, at: 0}; try { syncMeta = {...syncMeta, ...JSON.parse(localStorage.getItem(SYNCKEY) || "{}")}; } catch (e) {}
+const saveMeta = () => { try { localStorage.setItem(SYNCKEY, JSON.stringify(syncMeta)); } catch (e) {} };
+function authHeaders(){ return auth && auth.token ? {Authorization: "Bearer " + auth.token} : {}; }
+async function api(method, path, body, raw){
+  const h = {...authHeaders()}; let b;
+  if (raw) { b = raw; h["Content-Type"] = raw.type || "image/jpeg"; } else if (body !== undefined) { b = JSON.stringify(body); h["Content-Type"] = "application/json"; }
+  const r = await fetch(API + path, {method, headers: h, body: b, cache: "no-store"}); const ct = r.headers.get("content-type") || "";
+  const d = ct.includes("json") ? await r.json() : await r.blob();
+  if (r.status === 401 && d && d.needAuth && auth) signedOut(true);
+  if (!r.ok && r.status !== 409) throw Object.assign(new Error((d && d.error) || "Couldn't reach the server"), {status: r.status});
+  return {status: r.status, data: d};
+}
+async function pwHash(email, pw){
+  const te = new TextEncoder(), key = await crypto.subtle.importKey("raw", te.encode(pw), "PBKDF2", false, ["deriveBits"]);
+  const bits = await crypto.subtle.deriveBits({name:"PBKDF2", hash:"SHA-256", salt: te.encode("grindboard:" + email.trim().toLowerCase()), iterations: 150000}, key, 256);
+  return btoa(String.fromCharCode(...new Uint8Array(bits)));
+}
+const canRender = () => document.getElementById("sheet").hidden && !document.body.classList.contains("typing") && !document.querySelector(".gameov, .nightov");
+function safeRender(){ if (canRender()) { if (S && S.profile) renderApp(); else renderOnboarding(); } else setTimeout(safeRender, 1500); }
+let syncT = null, syncing = false;
+function markDirty(){ if (!auth || !API) return; syncMeta.dirty = true; saveMeta(); clearTimeout(syncT); syncT = setTimeout(() => pushSync(), 6000); }
+async function pushSync(force){
+  if (!auth || !API || !S || !S.profile || syncing) return false; syncing = true; let ok = false;
+  try {
+    let r = await api("PUT", "/sync", {data: JSON.stringify(S), base: syncMeta.updated, force: !!force});
+    if (r.status === 409) r = await api("PUT", "/sync", {data: JSON.stringify(S), base: r.data.updated, force: true});   // this phone has the newest edit
+    syncMeta.updated = r.data.updated; syncMeta.dirty = false; syncMeta.at = Date.now(); saveMeta(); ok = true;
+    queuePhotos(); paintSyncLabel();
+  } catch (e) {}
+  syncing = false; return ok;
+}
+async function pullSync(){
+  if (!auth || !API) return;
+  try {
+    const r = await api("GET", "/sync");
+    if (r.data.user && auth) { auth.name = r.data.user.name; }
+    if (r.data.data && r.data.updated > syncMeta.updated) {
+      if (syncMeta.dirty) { await pushSync(true); return; }
+      useRemote(r.data.data, r.data.updated);
+    } else if (!r.data.data && S && S.profile) await pushSync(true);
+    else if (syncMeta.dirty) await pushSync();
+    else { syncMeta.at = Date.now(); saveMeta(); paintSyncLabel(); }
+  } catch (e) {}
+}
+function useRemote(text, updated){
+  try { S = JSON.parse(text); localStorage.setItem(LSKEY, text); } catch (e) { return; }
+  syncMeta.updated = updated; syncMeta.dirty = false; syncMeta.at = Date.now(); saveMeta();
+  if (S && S.settings) applySettings(); safeRender(); fetchMissingPhotos();
+}
+async function queuePhotos(){
+  if (!auth || typeof IDB === "undefined" || queuePhotos.busy) return; queuePhotos.busy = true;
+  try {
+    const upKey = "gb-up-" + auth.email; let up = new Set(); try { up = new Set(JSON.parse(localStorage.getItem(upKey) || "[]")); } catch (e) {}
+    const all = await IDB.all();
+    for (const k of Object.keys(all)) { if (up.has(k)) continue;
+      try { await api("PUT", "/photo/" + k, undefined, all[k]); up.add(k); localStorage.setItem(upKey, JSON.stringify([...up])); } catch (e) { break; } }
+  } catch (e) {}
+  queuePhotos.busy = false;
+}
+function photoRefs(){
+  const out = new Set(); if (!S) return [];
+  Object.values(S.days || {}).forEach(d => Object.values(d.done || {}).forEach(x => { if (x && typeof x.photo === "string" && x.photo.startsWith("i:")) out.add(x.photo.slice(2)); }));
+  (S.journal || []).forEach(e => (e.photos || []).forEach(ph => { if (typeof ph === "string" && ph.startsWith("i:")) out.add(ph.slice(2)); }));
+  return [...out];
+}
+async function fetchMissingPhotos(){
+  if (!auth || typeof IDB === "undefined") return; let got = 0;
+  for (const k of photoRefs()) { if (photoURLs[k]) continue;
+    try { const r = await api("GET", "/photo/" + k); if (r.data instanceof Blob && r.data.size) { await IDB.put(k, r.data); photoURLs[k] = URL.createObjectURL(r.data); got++; } } catch (e) {} }
+  if (got) safeRender();
+}
+function signedOut(expired){
+  auth = null; try { localStorage.removeItem(AUTHKEY); } catch (e) {}
+  syncMeta = {updated: 0, dirty: false, at: 0}; saveMeta();
+  if (expired) toast("Please sign in again to keep syncing");
+}
+function agoText(t){ if (!t) return "not yet"; const m = Math.round((Date.now() - t) / 60000); return m < 1 ? "just now" : m < 60 ? m + " min ago" : m < 1440 ? Math.round(m / 60) + " h ago" : Math.round(m / 1440) + " days ago"; }
+function paintSyncLabel(){ const el = document.getElementById("syncLbl"); if (el) el.textContent = "Saved to your account " + agoText(syncMeta.at); }
+function accountCard(){
+  if (!API) return "";
+  if (!auth) return `<div class="card set acc"><h2>☁️ Your account</h2><p class="muted">Right now your Grindboard only lives on this phone. Create a free account and everything (streaks, journal, photos) is backed up and works on any phone.</p>
+    <div class="addrow"><button type="button" class="btn small" data-auth="signup">Create free account</button><button type="button" class="ghost" data-auth="login">Sign in</button></div></div>`;
+  return `<div class="card set acc"><h2>☁️ Your account</h2><p><b>${esc(auth.email)}</b></p><p class="muted" id="syncLbl">Saved to your account ${agoText(syncMeta.at)}</p>
+    <div class="addrow"><button type="button" class="btn small" id="syncNow">Sync now</button><button type="button" class="ghost" id="signOut">Sign out</button></div>
+    <div id="soBox" hidden class="empty">Sign out? Your data stays on this phone and in your account. <div class="addrow" style="margin-top:10px"><button class="btn small" type="button" id="soYes">Sign out</button><button class="ghost" type="button" id="soNo">Cancel</button></div></div></div>`;
+}
+function wireAccount(A){
+  A.querySelectorAll("[data-auth]").forEach(b => b.onclick = () => openAuth(b.dataset.auth));
+  const sn = A.querySelector("#syncNow"); if (sn) sn.onclick = async () => { sn.disabled = true; sn.textContent = "Syncing…"; await pullSync(); if (syncMeta.dirty || !syncMeta.at) await pushSync(true); sn.disabled = false; sn.textContent = "Sync now"; paintSyncLabel(); toast("All saved ✅"); };
+  const so = A.querySelector("#signOut"); if (so) so.onclick = () => { A.querySelector("#soBox").hidden = false; };
+  const sy = A.querySelector("#soYes"); if (sy) sy.onclick = async () => { await pushSync(true); try { await api("POST", "/auth/logout", {}); } catch (e) {} signedOut(); renderApp(); toast("Signed out"); };
+  const sx = A.querySelector("#soNo"); if (sx) sx.onclick = () => { A.querySelector("#soBox").hidden = true; };
+}
+function accountNudge(){
+  if (!API || auth || !S || !S.profile) return "";
+  let until = 0; try { until = Number(localStorage.getItem("gb-nudge") || 0); } catch (e) {}
+  if (Date.now() < until) return "";
+  return `<div class="card nudge"><span style="font-size:24px">☁️</span><div><b>Don't lose your streak</b><p class="muted">Your data only lives on this phone. A free account backs it all up.</p></div><div class="nbtns"><button type="button" class="btn small" data-auth="signup">Back it up</button><button type="button" class="x" id="nudgeX" aria-label="Not now">×</button></div></div>`;
+}
+function openAuth(mode){
+  const box = openSheet(), q = sel => box.querySelector(sel); let m = mode || "signup", busy = false, show = false;
+  const draw = (keep) => {
+    const v = keep || {name: (S && S.profile && S.profile.name) || "", email: "", pw: ""};
+    box.innerHTML = `<div class="grab" aria-hidden="true"></div><h2>${m === "signup" ? "Create your free account" : "Sign in"}</h2>
+      <p class="muted" style="margin-top:-6px">${m === "signup" ? (S && S.profile ? "Everything already on this phone gets saved into your account. Nothing is lost." : "Your Grindboard, backed up and on any phone.") : "Sign in to get your Grindboard back on this phone."}</p>
+      ${m === "signup" ? `<div class="field"><label for="auName">First name</label><input type="text" id="auName" autocomplete="given-name" value="${esc(v.name)}"></div>` : ""}
+      <div class="field"><label for="auEmail">Email</label><input type="email" id="auEmail" autocomplete="email" inputmode="email" autocapitalize="off" value="${esc(v.email)}"></div>
+      <div class="field"><label for="auPw">Password</label><div class="addrow"><input type="${show ? "text" : "password"}" id="auPw" autocomplete="${m === "signup" ? "new-password" : "current-password"}" value="${esc(v.pw)}" placeholder="${m === "signup" ? "At least 6 characters" : ""}"><button type="button" class="ghost" id="auShow">${show ? "Hide" : "Show"}</button></div></div>
+      ${m === "signup" ? `<p class="muted" style="font-size:13px">Write your password down somewhere safe. There's no "forgot password" yet.</p>` : ""}
+      <p class="err" id="auErr" hidden></p>
+      <button type="button" class="btn" id="auGo" ${busy ? "disabled" : ""}>${busy ? "Please wait…" : m === "signup" ? "Create account" : "Sign in"}</button>
+      <button type="button" class="ghost" id="auSwitch">${m === "signup" ? "I already have an account" : "I'm new, create an account"}</button>
+      <button type="button" class="ghost" id="auCancel">Cancel</button>`;
+    const cur = () => ({name: q("#auName") ? q("#auName").value : v.name, email: q("#auEmail").value, pw: q("#auPw").value});
+    q("#auShow").onclick = () => { const c = cur(); show = !show; draw(c); };
+    q("#auSwitch").onclick = () => { const c = cur(); m = m === "signup" ? "login" : "signup"; draw(c); };
+    q("#auCancel").onclick = closeSheet;
+    q("#auGo").onclick = async () => {
+      const c = cur(), email = c.email.trim().toLowerCase(), err = msg => { const e = q("#auErr"); e.textContent = msg; e.hidden = false; };
+      if (!/^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(email)) return err("Type your email address.");
+      if (c.pw.length < 6) return err("Your password needs at least 6 characters.");
+      busy = true; draw(c);
+      try {
+        const hash = await pwHash(email, c.pw);
+        const r = await api("POST", m === "signup" ? "/auth/signup" : "/auth/login", {email, hash, name: c.name.trim()});
+        auth = {token: r.data.token, email: r.data.user.email, name: r.data.user.name}; localStorage.setItem(AUTHKEY, JSON.stringify(auth));
+        syncMeta = {updated: 0, dirty: false, at: 0}; saveMeta();
+        if (m === "signup") {
+          if (S && S.profile) { if (!S.profile.name && c.name.trim()) S.profile.name = c.name.trim(); await pushSync(true); }
+          closeSheet(); toast(S && S.profile ? "Account created. Everything is backed up ✅" : "Account created ✅");
+        } else {
+          const g = await api("GET", "/sync"), remote = g.data.data;
+          if (!remote) { if (S && S.profile) await pushSync(true); closeSheet(); toast("Signed in ✅"); }
+          else if (!S || !S.profile) { closeSheet(); useRemote(remote, g.data.updated); toast("Welcome back ✅"); }
+          else chooseCopy(remote, g.data.updated);
+        }
+      } catch (e) { busy = false; draw(c); err(e.message || "Something went wrong. Try again."); }
+    };
+  };
+  draw();
+}
+function chooseCopy(remote, updated){
+  const box = openSheet(); let r = null; try { r = JSON.parse(remote); } catch (e) {}
+  const pl = (n, w) => n + " " + w + (n === 1 ? "" : "s"), count = st => st ? pl(Object.keys(st.days || {}).length, "day") + ", " + pl((st.journal || []).length, "journal entry").replace("entrys", "entries") : "";
+  box.innerHTML = `<div class="grab" aria-hidden="true"></div><h2>Which one should we keep?</h2>
+    <p class="muted">This phone and your account both have a Grindboard. Pick the one to keep. The other one gets replaced.</p>
+    <button type="button" class="btn" id="ccAcc">Use my account<br><small style="font-weight:500">${esc(count(r))}, saved ${agoText(updated)}</small></button>
+    <p class="muted" style="font-size:13px">If this is a different person (like a sister), tap Cancel and create her own account instead.</p>
+    <button type="button" class="ghost" id="ccPhone">Keep this phone's data<br><small>${esc(count(S))}</small></button>`;
+  box.insertAdjacentHTML("beforeend", `<button type="button" class="ghost" id="ccCancel">Cancel</button>`);
+  box.querySelector("#ccCancel").onclick = async () => { try { await api("POST", "/auth/logout", {}); } catch (e) {} signedOut(); closeSheet(); };
+  box.querySelector("#ccAcc").onclick = () => { closeSheet(); useRemote(remote, updated); toast("Loaded from your account ✅"); };
+  box.querySelector("#ccPhone").onclick = async () => { syncMeta.updated = updated; await pushSync(true); closeSheet(); toast("This phone's data is now in your account ✅"); };
+}
+if (API) {
+  document.addEventListener("visibilitychange", () => { if (!auth) return; if (document.hidden) { if (syncMeta.dirty) pushSync(); } else pullSync(); });
+  setTimeout(() => { if (auth) pullSync(); }, 800);
 }
 
 /* ---------- keyboard handling ---------- */
@@ -870,6 +1117,46 @@ function renderRewards(A){
   A.querySelectorAll("[data-rmrw]").forEach(b => b.onclick = () => { S.rewards = S.rewards.filter(x => x.id !== b.dataset.rmrw); persist(); renderApp(); });
 }
 
+
+/* ---------- numbers (inside Journal -> Stats) ---------- */
+let numsDay = null;
+function numbersHTML(){
+  const p = PATHS[S.profile.path], k = numsDay || keyOf(new Date()), d = S.days[k] || {nums:{}}, isT = k === keyOf(new Date());
+  const month = moneyIn(30), week = moneyIn(7), goal = S.profile.goal || 0;
+  const fmt = v => (v<0?"-£":"£") + Math.abs(v).toLocaleString("en-GB",{maximumFractionDigits:2});
+  return `<div class="card" style="display:flex;flex-direction:column;gap:12px"><div class="cardhead"><h2>${isT ? "Today's" : prettyDay(k) + "'s"} numbers</h2><div class="daynav small"><button type="button" id="nPrev" aria-label="Previous day">‹</button><button type="button" id="nNext" aria-label="Next day" ${isT ? "disabled" : ""}>›</button></div></div>
+      <div class="nums">${p.nums.map(([id,label,unit])=>`<label for="n-${id}">${label}${unit?` (${unit})`:""}<input type="number" id="n-${id}" step="any" inputmode="decimal" value="${esc(d.nums?.[id] ?? "")}" placeholder="0"></label>`).join("")}</div>
+      ${p.note?`<p class="muted" style="font-size:13px">${p.note}</p>`:""}
+    </div>
+    <div class="card" style="display:flex;flex-direction:column;gap:12px"><h2>Progress</h2>
+      <div class="week"><div class="kpi"><small>Last 7 days</small><b>${fmt(week)}</b></div><div class="kpi"><small>Last 30 days</small><b>${fmt(month)}</b></div><div class="kpi"><small>Streak</small><b>${streak()}d</b></div></div>
+      ${goal?`<div><p style="display:flex;justify-content:space-between;font-size:14px;margin-bottom:6px"><span>Monthly goal</span><b>${fmt(month)} / ${fmt(goal)}</b></p><div class="goal"><i style="width:${Math.max(0,Math.min(100,month/goal*100))}%"></i></div></div>`:""}
+      <div class="chart">${chart()}</div>
+      <button type="button" class="ghost" id="shareWeek">📸 Share my week</button>
+    </div>`;
+}
+function wireNumbers(A){
+  const p = PATHS[S.profile.path], k = numsDay || keyOf(new Date()); let t;
+  p.nums.forEach(([id]) => { const el = A.querySelector("#n-"+id); if (el) el.oninput = e => { const dd = day(k); dd.nums[id] = e.target.value === "" ? "" : Number(e.target.value); clearTimeout(t); t = setTimeout(persist, 600); }; });
+  const pv = A.querySelector("#nPrev"), nx = A.querySelector("#nNext");
+  if (pv) pv.onclick = () => { const d = new Date((numsDay || keyOf(new Date())) + "T12:00:00"); d.setDate(d.getDate() - 1); numsDay = keyOf(d); renderApp(); };
+  if (nx) nx.onclick = () => { const d = new Date((numsDay || keyOf(new Date())) + "T12:00:00"); d.setDate(d.getDate() + 1); numsDay = keyOf(d) >= keyOf(new Date()) ? null : keyOf(d); renderApp(); };
+  const sw = A.querySelector("#shareWeek"); if (sw) sw.onclick = shareWeek;
+}
+function playbookHTML(){
+  const p = PATHS[S.profile.path], worked = (S.journal || []).filter(e => e.worked);
+  const items = [...worked.map(e => ({t: (e.what ? e.what + ": " : "") + (e.notes || "").slice(0, 160), d: prettyDay(e.date), j: e.id})), ...(S.notes || []).map(n => ({t: n.text, d: n.date, n: n.id}))];
+  return `<div class="card" style="display:flex;flex-direction:column;gap:12px"><h2>⭐ What works for you</h2>
+    <p class="muted" style="font-size:14px">Your playbook. Tick "This worked" on a journal entry, or jot it here.</p>
+    <form id="addNote" class="addrow"><input type="text" id="noteIn" placeholder="${esc(p.playHint)}" aria-label="What worked" maxlength="200"><button class="btn small" type="submit">Save</button></form>
+    ${items.length ? `<ul class="list">${items.map(x => `<li class="item"><span>${esc(x.t)}<small class="muted" style="display:block;font-size:12px">${esc(x.d)}</small></span>${x.n ? `<button class="x" type="button" data-del="${x.n}" aria-label="Delete">×</button>` : ""}</li>`).join("")}</ul>` : `<div class="empty">Nothing yet. The first time something works, save it here.</div>`}
+  </div>`;
+}
+function wirePlaybook(A){
+  const f = A.querySelector("#addNote"); if (f) f.onsubmit = e => { e.preventDefault(); const v = A.querySelector("#noteIn").value.trim(); if (!v) return; S.notes = S.notes || []; S.notes.unshift({id:"n"+Date.now(), text:v, date:new Date().toLocaleDateString("en-GB",{day:"numeric",month:"short",year:"numeric"})}); persist(); renderApp(); toast("Saved to your playbook"); };
+  A.querySelectorAll("[data-del]").forEach(b => b.onclick = () => { S.notes = S.notes.filter(x => x.id !== b.dataset.del); persist(); renderApp(); });
+}
+
 /* ---------- journal ---------- */
 const MOODS = ["Calm","Confident","Motivated","Happy","Anxious","Frustrated","Bored","Tired"];
 const JPRESETS = {
@@ -899,7 +1186,7 @@ const signed = v => (v > 0 ? "+" : "") + money2(v);
 const isNum = v => typeof v === "number" && !isNaN(v);
 const prettyDayLong = k => { const [y,m,d] = k.split("-").map(Number); return new Date(y, m-1, d).toLocaleDateString("en-GB", {weekday:"short", day:"numeric", month:"short"}); };
 function jEntries(){ S.journal = S.journal || []; return S.journal; }
-function jSeg(){ const segs = [["entries","Entries"],["stats","Stats"],["playbook","Playbook"]]; return `<div class="seg3" role="tablist" aria-label="Journal" style="grid-template-columns:repeat(${segs.length},1fr)">${segs.map(([v,l]) => `<button type="button" role="tab" data-jv="${v}" aria-selected="${jView===v}">${l}</button>`).join("")}</div>`; }
+function jSeg(){ const segs = [["entries","Entries"],["stats","Stats & numbers"],["photos","Photos"]]; return `<div class="seg3" role="tablist" aria-label="Journal" style="grid-template-columns:repeat(${segs.length},1fr)">${segs.map(([v,l]) => `<button type="button" role="tab" data-jv="${v}" aria-selected="${jView===v}">${l}</button>`).join("")}</div>`; }
 function wireJSeg(A){ A.querySelectorAll("[data-jv]").forEach(b => b.onclick = () => { jView = b.dataset.jv; renderApp(); window.scrollTo(0,0); }); }
 
 function jRow(e, cfg){
@@ -907,7 +1194,7 @@ function jRow(e, cfg){
   const title = (cfg.what && e.what) || (cfg.trade && e.side ? e.side : cfg.cap);
   return `<li class="trow"><button class="tbody jrow" type="button" data-je="${e.id}" aria-label="Open entry: ${esc(title)}"><span class="jtop"><span class="ttext">${esc(title)}${cfg.what2 && e.what2 ? ` <span class="muted" style="font-weight:500">· ${esc(e.what2)}</span>` : ""}</span>${r ? `<b class="${e.result>0?"pos":e.result<0?"neg":""}">${signed(e.result)}</b>` : ""}</span>
     <span class="tmeta">${e.time ? `<em>${esc(e.time)}</em>` : ""}${cfg.plan ? `<em class="${e.plan===false?"late":""}">${e.plan===false?"Off plan":"On plan"}</em>` : ""}${(e.tags||[]).map(t => `<em class="flag">${esc(t)}</em>`).join("")}${cfg.grade && e.grade ? `<em>Grade ${esc(e.grade)}</em>` : ""}${cfg.mood && e.mood ? `<em>${esc(e.mood)}</em>` : ""}</span>
-    ${e.notes ? `<span class="jnote">${esc(e.notes)}</span>` : ""}</button>${src ? `<img class="proof" src="${esc(src)}" alt="">` : ""}</li>`;
+    ${e.notes ? `<span class="jnote">${e.worked ? "⭐ " : ""}${esc(e.notes)}</span>` : (e.worked ? `<span class="jnote">⭐ This worked</span>` : "")}</button>${src ? `<img class="proof" src="${esc(src)}" alt="">` : ""}</li>`;
 }
 function renderJournalEntries(A){
   const cfg = jcfg(), list = jEntries().slice().sort((a,b) => (b.date+(b.time||"")).localeCompare(a.date+(a.time||"")));
@@ -960,7 +1247,8 @@ function renderJournalStats(A){
   const sortB = (a,b) => byCount ? b.n - a.n : a.v - b.v, sortG = (a,b) => byCount ? b.n - a.n : b.v - a.v;
   A.innerHTML = header() + jSeg() + `
     <div class="seg three" role="group" aria-label="Period">${[["all","All time"],["30","30 days"],["7","7 days"]].map(([v,l]) => `<button type="button" data-jp="${v}" aria-pressed="${jPeriod===v}">${l}</button>`).join("")}</div>
-    <div class="card set"><h2>Your numbers</h2><div class="jtiles">${tiles.join("")}</div></div>
+    ${numbersHTML()}${playbookHTML()}
+    <div class="card set"><h2>Your journal numbers</h2><div class="jtiles">${tiles.join("")}</div></div>
     ${cfg.money ? `<div class="card set"><h2>Running total</h2>${jCurve(list)}</div>` : ""}
     ${cfg.tags.length ? `<div class="card set"><h2>${byCount ? "What gets in the way most" : "What your setbacks cost"}</h2><p class="muted" style="font-size:13.5px">${byCount ? "How often each one comes up. The longest bar is the habit to work on first." : "The total result of every " + esc(cfg.entry) + " where each one happened. The longest red bar is the habit to fix first."}</p>
       ${jBars(grp(list, e => e.tags || []).sort(sortB), byCount, "Nothing tagged yet. Tap the tags on each entry so this can show you the pattern.")}</div>` : ""}
@@ -970,9 +1258,10 @@ function renderJournalStats(A){
         : cfg.what && cfg.money ? `<div class="card set"><h2>By ${esc(cfg.what.toLowerCase())}</h2>${jBars(grp(list, e => e.what || "").sort(sortG).slice(0, 8), byCount, "Fill in " + esc(cfg.what.toLowerCase()) + " to compare them.")}</div>` : ""}`;
   wireJSeg(A);
   A.querySelectorAll("[data-jp]").forEach(b => b.onclick = () => { jPeriod = b.dataset.jp; renderApp(); });
+  wireNumbers(A); wirePlaybook(A);
 }
 function openSheet(){ const sh = document.getElementById("sheet"); sh.onclick = null; sh.hidden = false; document.body.style.overflow = "hidden"; return sh.querySelector(".sheet"); }
-function closeSheet(){ document.getElementById("sheet").hidden = true; document.body.style.overflow = ""; renderApp(); }
+function closeSheet(){ document.getElementById("sheet").hidden = true; document.body.style.overflow = ""; if (S && S.profile) renderApp(); else renderOnboarding(); }
 function openJCustom(){
   const c = jcfg(), box = openSheet(), q = sel => box.querySelector(sel);
   const sw = (id, on, title, sub) => `<div class="setrow"><div><b>${title}</b>${sub ? `<p class="muted">${sub}</p>` : ""}</div><button type="button" class="switch" data-sw="${id}" role="switch" aria-checked="${!!on}" aria-label="${title}"><i></i></button></div>`;
@@ -1027,6 +1316,7 @@ function openEntry(id){
       ${cfg.mood ? `<div class="field"><span class="flabel">How did you feel?</span><div class="chips">${MOODS.map(m => `<button type="button" class="chipb" data-mood="${m}" aria-pressed="${e.mood === m}">${m}</button>`).join("")}</div></div>` : ""}
       ${cfg.tags.length ? `<div class="field"><span class="flabel">${esc(cfg.tagLabel)} <span class="muted" style="font-weight:500">Tap all that apply</span></span><div class="chips">${cfg.tags.map(t => `<button type="button" class="chipb" data-tag="${esc(t)}" aria-pressed="${e.tags.includes(t)}">${esc(t)}</button>`).join("")}</div></div>` : ""}
       ${cfg.photos ? `<div class="field"><span class="flabel">Photos or screenshots</span><div class="thumbs">${e.photos.map((ph,i) => { const src = photoSrc({photo:ph}); return src ? `<span class="thumb"><img src="${esc(src)}" alt="Photo ${i+1}" data-vph="${i}"><button type="button" data-rmph="${i}" aria-label="Remove photo">×</button></span>` : ""; }).join("")}${Array.from({length:uploading}, () => `<span class="thumb loading"></span>`).join("")}<button type="button" class="thumb add" id="jAddPh" aria-label="Add a photo">+</button></div></div>` : ""}
+      <div class="setrow"><div><b>⭐ This worked</b><p class="muted">Adds it to your playbook</p></div><button type="button" class="switch" id="jWorked" role="switch" aria-checked="${!!e.worked}" aria-label="This worked"><i></i></button></div>
       <div class="field"><label for="jNotes">Notes</label><textarea id="jNotes" placeholder="${esc(cfg.notesPh)}">${esc(e.notes)}</textarea></div>
       ${more ? `<details class="more" id="jMore" ${moreOpen ? "open" : ""}><summary>More details</summary><div class="set" style="margin-top:12px">
         ${cfg.trade ? `<div class="field"><span class="flabel">Direction</span><div class="seg"><button type="button" data-side="Long" aria-pressed="${e.side !== "Short"}">Long</button><button type="button" data-side="Short" aria-pressed="${e.side === "Short"}">Short</button></div></div>
@@ -1038,6 +1328,7 @@ function openEntry(id){
       <button type="button" class="ghost" id="jCancel">Cancel</button>`;
     if (q("#jMore")) q("#jMore").addEventListener("toggle", ev => { moreOpen = ev.target.open; });
     box.querySelectorAll("[data-plan]").forEach(b => b.onclick = () => { read(); e.plan = b.dataset.plan === "1"; draw(); });
+    q("#jWorked").onclick = ev => { e.worked = !e.worked; ev.currentTarget.setAttribute("aria-checked", e.worked); };
     box.querySelectorAll("[data-mood]").forEach(b => b.onclick = () => { read(); e.mood = e.mood === b.dataset.mood ? "" : b.dataset.mood; draw(); });
     box.querySelectorAll("[data-tag]").forEach(b => b.onclick = () => { const t = b.dataset.tag, on = !e.tags.includes(t); e.tags = on ? [...e.tags, t] : e.tags.filter(x => x !== t); b.setAttribute("aria-pressed", on); });
     box.querySelectorAll("[data-side]").forEach(b => b.onclick = () => { read(); e.side = b.dataset.side; draw(); });
@@ -1147,7 +1438,7 @@ function moneyIn(days){
 function header(){
   const p = PATHS[S.profile.path];
   return `<div class="head"><div class="brand">Grind<span>board</span></div>
-    <div class="streak" title="Days in a row with at least half your routine done"><svg viewBox="0 0 24 24" fill="currentColor"><path d="M12 2s5 5 5 10a5 5 0 0 1-10 0c0-2 1-3.5 1-3.5S9 11 11 11c0-4 1-9 1-9z"/></svg>${streak()} day streak</div></div>
+    <div class="chips2"><button type="button" class="lvchip" data-lv aria-label="Level and rewards">⭐ Lv ${(() => { try { return rwStats().lv + 1; } catch (e) { return 1; } })()}</button><div class="streak" title="Days in a row with at least half your checklist done"><svg viewBox="0 0 24 24" fill="currentColor"><path d="M12 2s5 5 5 10a5 5 0 0 1-10 0c0-2 1-3.5 1-3.5S9 11 11 11c0-4 1-9 1-9z"/></svg>${streak()}<span class="sl"> day streak</span></div></div></div>
     <div class="hello"><span class="pathtag">${p.name}</span><h1>${greet()}${S.profile.name?", "+esc(S.profile.name):""}</h1></div>`;
 }
 function greet(){ const h = new Date().getHours(); return h < 12 ? "Good morning" : h < 18 ? "Good afternoon" : "Good evening"; }
@@ -1176,7 +1467,7 @@ const FONTS = {
   classic:{name:"Classic", display:"'Fraunces',Georgia,serif", body:"'Outfit',system-ui,sans-serif"}
 };
 const HOST_THEME = document.documentElement.dataset.theme || "";
-const DEFAULT_SETTINGS = {theme:"terracotta", font:"modern", size:"normal", proof:true, mode:"auto", custom:"#e0457b"};
+const DEFAULT_SETTINGS = {theme:"terracotta", font:"modern", size:"normal", proof:false, mode:"auto", custom:"#e0457b"};
 const hx = h => { h = h.replace("#",""); if (h.length === 3) h = h.split("").map(c => c+c).join(""); return [0,2,4].map(i => parseInt(h.slice(i,i+2),16)); };
 const toHex = a => "#" + a.map(v => Math.round(Math.max(0,Math.min(255,v))).toString(16).padStart(2,"0")).join("");
 const mix = (a, b, t) => toHex(hx(a).map((v,i) => v + (hx(b)[i] - v) * t));
@@ -1210,7 +1501,7 @@ function renderApp(){
   if (tab === "today" && editing) { renderEditor(A, k, nav); }
   else if (tab === "today") {
     const r = routineFor(k), d = S.days[k] || {done:{}}, pct = dayPct(k), C = 175.9;
-    A.innerHTML = header() + levelCard(rwStats()) + nav + `
+    A.innerHTML = header() + accountNudge() + weeklyCard() + nav + `
       <div class="card prog"><div class="ring"><svg width="64" height="64" viewBox="0 0 64 64"><circle cx="32" cy="32" r="28" fill="none" stroke="var(--sunk)" stroke-width="7"/><circle cx="32" cy="32" r="28" fill="none" stroke="var(--accent)" stroke-width="7" stroke-linecap="round" stroke-dasharray="${C}" stroke-dashoffset="${C*(1-pct)}"/></svg><b>${Math.round(pct*100)}%</b></div>
         <div><h2>Your day</h2><p class="muted">Hit 50% of your checklist to keep your streak alive.</p></div></div>
       <div class="card"><div class="cardhead"><h2>${isToday ? "Today's checklist" : "Checklist for this day"}</h2><button class="ghost" type="button" id="editBtn">Edit routine</button></div>
@@ -1235,7 +1526,6 @@ function renderApp(){
     const later = A.querySelector("#laterBtn"); if (later) later.onclick = () => { showLater = !showLater; renderApp(); };
     const pb = A.querySelector("#playBtn"); if (pb) pb.onclick = openGame;
     const wb = A.querySelector("#windBtn"); if (wb) wb.onclick = openWind;
-    A.querySelector("#openRw").onclick = () => { tab = "rewards"; renderApp(); window.scrollTo(0,0); };
     A.querySelectorAll(".tickb[data-id]").forEach(b => b.onclick = () => {
       const id = b.dataset.id, dd = day(k);
       if (dd.done[id]) { delete dd.done[id]; persist(); renderApp(); return; }
@@ -1273,7 +1563,7 @@ function renderApp(){
 
   if (tab === "settings") {
     const st = S.settings, p = S.profile;
-    A.innerHTML = header() + `
+    A.innerHTML = header() + accountCard() + `
       <div class="card set"><h2>Colour</h2>
         <div class="seg three" role="group" aria-label="Light or dark">${[["auto","Auto"],["light","Light"],["dark","Dark"]].map(([v,l])=>`<button type="button" data-mode="${v}" aria-pressed="${(st.mode||"auto")===v}">${l}</button>`).join("")}</div>
         <div class="swatches">${Object.entries(THEMES).map(([id,t])=>`<button type="button" class="sw" data-theme-id="${id}" aria-pressed="${st.theme===id}"><i style="background:linear-gradient(135deg,${t.light.accent},${t.light.fire})"></i><span>${t.name}</span></button>`).join("")}
@@ -1305,7 +1595,7 @@ function renderApp(){
         </div>
         <button class="btn small" type="button" id="sSave" style="align-self:flex-start">Save changes</button>
       </div>
-      <p class="muted" style="text-align:center;font-size:12.5px">Grindboard version 10</p>
+      <p class="muted" style="text-align:center;font-size:12.5px">Grindboard version 11</p>
       <div class="card set"><h2>Backup</h2>
         <p class="muted">Your plan is saved on this phone. Download a backup to keep it safe or to move it to a new phone. Photos stay on this phone.</p>
         <div class="addrow"><button class="btn small" id="bkDown" type="button">Download backup</button><label class="ghost" for="bkIn" style="cursor:pointer;display:inline-flex;align-items:center">Restore backup</label></div>
@@ -1317,6 +1607,7 @@ function renderApp(){
         <div id="confirmBox" hidden class="empty">Are you sure? This can't be undone. <div class="addrow" style="margin-top:10px"><button class="btn small" type="button" id="yes">Yes, start again</button><button class="ghost" type="button" id="no">Cancel</button></div></div>
       </div>`;
     const upd = patch => { S.settings = {...S.settings, ...patch}; applySettings(); persist(); renderApp(); };
+    wireAccount(A);
     A.querySelectorAll("[data-theme-id]").forEach(b => b.onclick = () => upd({theme: b.dataset.themeId}));
     A.querySelectorAll("[data-mode]").forEach(b => b.onclick = () => upd({mode: b.dataset.mode}));
     A.querySelector("#customBtn").onclick = openColourSheet;
@@ -1338,52 +1629,32 @@ function renderApp(){
     A.querySelector("#yes").onclick = () => { S = null; try { localStorage.removeItem(LSKEY); } catch(e){} if (docRef) saving = saving.then(()=>docRef.delete()).catch(()=>{}); onboard = {step:1, path:null, name:"", wake:"07:00", goal:""}; tab = "today"; applySettings(); renderOnboarding(); };
   }
 
-  if (tab === "numbers") {
-    const p = PATHS[S.profile.path], d = S.days[k] || {nums:{}};
-    const month = moneyIn(30), week = moneyIn(7), goal = S.profile.goal || 0;
-    const fmt = v => (v<0?"-£":"£") + Math.abs(v).toLocaleString("en-GB",{maximumFractionDigits:2});
-    A.innerHTML = header() + nav + `
-      <div class="card" style="display:flex;flex-direction:column;gap:12px"><h2>${isToday?"Today's":"This day's"} numbers</h2>
-        <div class="nums">${p.nums.map(([id,label,unit])=>`<label for="n-${id}">${label}${unit?` (${unit})`:""}<input type="number" id="n-${id}" step="any" inputmode="decimal" value="${esc(d.nums?.[id] ?? "")}" placeholder="0"></label>`).join("")}</div>
-        ${p.note?`<p class="muted" style="font-size:13px">${p.note}</p>`:""}
-      </div>
-      <div class="card" style="display:flex;flex-direction:column;gap:12px"><h2>Progress</h2>
-        <div class="week"><div class="kpi"><small>Last 7 days</small><b>${fmt(week)}</b></div><div class="kpi"><small>Last 30 days</small><b>${fmt(month)}</b></div><div class="kpi"><small>Streak</small><b>${streak()}d</b></div></div>
-        ${goal?`<div><p style="display:flex;justify-content:space-between;font-size:14px;margin-bottom:6px"><span>Monthly goal</span><b>${fmt(month)} / ${fmt(goal)}</b></p><div class="goal"><i style="width:${Math.max(0,Math.min(100,month/goal*100))}%"></i></div></div>`:""}
-        <div class="chart">${chart()}</div>
-      </div>`;
-    let t;
-    p.nums.forEach(([id]) => { A.querySelector("#n-"+id).oninput = e => { const dd = day(k); dd.nums[id] = e.target.value === "" ? "" : Number(e.target.value); clearTimeout(t); t = setTimeout(()=>{ persist(); const f = document.activeElement?.id; renderApp(); if (f) { const el = document.getElementById(f); if (el){ el.focus(); const v = el.value; el.value=""; el.value=v; } } }, 700); }; });
-  }
 
   if (tab === "journal" && jView === "entries") renderJournalEntries(A);
   if (tab === "journal" && jView === "stats") renderJournalStats(A);
   if (tab === "coach") renderCoach(A);
   if (tab === "journal" && jView === "coach") { jView = "entries"; }
-  if (tab === "journal" && jView === "playbook") {
-    const p = PATHS[S.profile.path];
+  if (tab === "journal" && jView === "playbook") jView = "photos";
+  if (tab === "journal" && jView === "photos") {
     A.innerHTML = header() + jSeg() + `
-      <div class="card" style="display:flex;flex-direction:column;gap:12px"><h2>My playbook</h2>
-        <p class="muted">Every time something works, write it here. Over a few weeks this becomes your own formula.</p>
-        <form id="addNote" style="display:flex;flex-direction:column;gap:8px"><textarea id="noteIn" placeholder="${esc(p.playHint)}" aria-label="What worked"></textarea><button class="btn small" type="submit" style="align-self:flex-start">Save to playbook</button></form>
-        ${S.notes.length?`<ul class="list">${S.notes.map(n=>`<li class="item"><span>${esc(n.text)}<small class="muted" style="display:block;font-size:12px">${esc(n.date)}</small></span><button class="x" type="button" data-del="${n.id}" aria-label="Delete note">×</button></li>`).join("")}</ul>`:`<div class="empty">Your playbook is empty. Add the first thing that worked for you.</div>`}
-      </div>
-      <div class="card" style="display:flex;flex-direction:column;gap:12px"><h2>Proof journal</h2>
+      <div class="card" style="display:flex;flex-direction:column;gap:12px"><h2>Proof photos</h2>
         ${(() => { const j = journalEntries(); return j.length
           ? `<p class="muted">${j.length} photo${j.length>1?"s":""} of things you got done.</p><div class="journal">${j.slice(0,90).map((e,i)=>`<button type="button" data-j="${i}" aria-label="${esc(e.title)}, ${prettyDay(e.k)}"><img src="${esc(e.src)}" alt=""><span>${prettyDay(e.k)} · ${esc(e.title)}</span></button>`).join("")}</div>`
-          : `<div class="empty">No proof photos yet. Tick a task on the Today tab and take a photo. It shows up here.</div>`; })()}
+          : `<div class="empty">No photos yet. Turn on photo proof in Settings, or add photos to journal entries. They show up here.</div>`; })()}
       </div>`;
     const J = journalEntries();
     A.querySelectorAll("[data-j]").forEach(b => b.onclick = () => { const e = J[Number(b.dataset.j)]; openPhoto(e.src, e.title + " · " + prettyDay(e.k)); });
     wireJSeg(A);
-    A.querySelector("#addNote").onsubmit = e => { e.preventDefault(); const v = A.querySelector("#noteIn").value.trim(); if (!v) return; S.notes.unshift({id:"n"+Date.now(), text:v, date:new Date().toLocaleDateString("en-GB",{day:"numeric",month:"short",year:"numeric"})}); persist(); renderApp(); toast("Saved to playbook"); };
-    A.querySelectorAll("[data-del]").forEach(b => b.onclick = () => { S.notes = S.notes.filter(x=>x.id!==b.dataset.del); persist(); renderApp(); });
   }
 
   const pv = document.getElementById("dPrev"), nx = document.getElementById("dNext");
   if (pv) pv.onclick = () => { editing = false; draft = null; viewDate = new Date(viewDate); viewDate.setDate(viewDate.getDate()-1); renderApp(); };
   if (nx) nx.onclick = () => { editing = false; draft = null; viewDate = new Date(viewDate); viewDate.setDate(viewDate.getDate()+1); renderApp(); };
   checkRewards();
+  document.querySelectorAll("[data-lv]").forEach(b => b.onclick = () => { tab = "rewards"; renderApp(); window.scrollTo(0,0); });
+  document.querySelectorAll(".nudge [data-auth]").forEach(b => b.onclick = () => openAuth(b.dataset.auth));
+  const nudX = document.getElementById("nudgeX"); if (nudX) nudX.onclick = () => { try { localStorage.setItem("gb-nudge", String(Date.now() + 3 * 86400000)); } catch (e) {} renderApp(); };
+  if (typeof wireWeekly === "function") wireWeekly();
 }
 function chart(){
   const p = PATHS[S.profile.path], pts = [];
