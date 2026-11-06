@@ -461,7 +461,7 @@ function openTask(id){
 
 /* ---------- server: phone notifications + AI coach ---------- */
 const API = String(window.GB_API || "").replace(/\/$/, "");
-const VAPID = "BCigKAuZ3c-BUvEXwdqnHlSGxtc8yQIpOOytY9qqG7V1Aph_phyNJl4u2PhnjxFIbI4hu98y4gB7xELm_00rbyM";
+const VAPID = "BPAevOlTry9dJFulfjc_aFErrAS1yDGua_m365qrCRiTOkiCfAjjwm7KxLV3AwPnH9AdBBn4TJ0dLoMBqP9jpnI";
 const IOS = /iPhone|iPad|iPod/.test(navigator.userAgent), STANDALONE = (window.matchMedia && matchMedia("(display-mode: standalone)").matches) || navigator.standalone === true;
 const PUSH_OK = !!API && "serviceWorker" in navigator && "PushManager" in window && "Notification" in window;
 async function apiPost(path, body){
