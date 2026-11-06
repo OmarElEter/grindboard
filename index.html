@@ -11,6 +11,7 @@
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 <meta name="apple-mobile-web-app-title" content="Grindboard">
 <link rel="manifest" href="manifest.webmanifest">
+
 <link rel="icon" type="image/png" sizes="192x192" href="icon-192.png">
 <link rel="apple-touch-icon" href="apple-touch-icon.png">
 <style>html{-webkit-text-size-adjust:100%}body{margin:0}img{max-width:100%}[hidden]{display:none!important}
@@ -267,6 +268,17 @@ details.more summary{cursor:pointer;font-weight:600;color:var(--accent)}
 .confetti{position:fixed;inset:0;pointer-events:none;z-index:99;overflow:hidden}
 .confetti i{position:absolute;top:-12px;width:8px;height:14px;border-radius:2px;animation:fall linear forwards}
 @keyframes fall{to{top:105%;transform:rotate(720deg) translateX(40px)}}
+
+.chat{display:flex;flex-direction:column;gap:10px}
+.msg{max-width:88%;padding:10px 14px;border-radius:16px;font-size:15px;line-height:1.5;overflow-wrap:anywhere}
+.msg.user{align-self:flex-end;background:var(--accent);color:var(--accent-ink);border-bottom-right-radius:6px}
+.msg.assistant{align-self:flex-start;background:var(--sunk);border-bottom-left-radius:6px}
+.msg p{margin:0 0 6px}.msg p:last-child{margin:0}
+.msg ul{margin:4px 0 6px;padding-left:18px}.msg li{margin:2px 0}
+.thinking span{animation:blink 1.2s infinite}.thinking span:nth-child(2){animation-delay:.2s}.thinking span:nth-child(3){animation-delay:.4s}
+@keyframes blink{0%,100%{opacity:.2}50%{opacity:1}}
+#cForm{align-items:flex-end}
+#cForm textarea{min-height:48px;resize:none}
 @media (prefers-reduced-motion:reduce){*{transition:none!important;animation:none!important}.confetti{display:none}}
 </style>
 
@@ -333,6 +345,7 @@ function toast(msg){ const t = document.getElementById("toast"); t.textContent =
 
 let saveT = null, saving = Promise.resolve();
 function persist(){
+  if (typeof syncPushSoon === "function") syncPushSoon();
   // prune old days to keep the document small
   const keys = Object.keys(S.days||{}).sort(); while (keys.length > 120) delete S.days[keys.shift()];
   try { localStorage.setItem(LSKEY, JSON.stringify(S)); } catch (e) {}
@@ -444,6 +457,109 @@ function openTask(id){
 }
 
 
+
+
+/* ---------- server: phone notifications + AI coach ---------- */
+const API = String(window.GB_API || "").replace(/\/$/, "");
+const VAPID = "BCigKAuZ3c-BUvEXwdqnHlSGxtc8yQIpOOytY9qqG7V1Aph_phyNJl4u2PhnjxFIbI4hu98y4gB7xELm_00rbyM";
+const IOS = /iPhone|iPad|iPod/.test(navigator.userAgent), STANDALONE = (window.matchMedia && matchMedia("(display-mode: standalone)").matches) || navigator.standalone === true;
+const PUSH_OK = !!API && "serviceWorker" in navigator && "PushManager" in window && "Notification" in window;
+async function apiPost(path, body){
+  const r = await fetch(API + path, {method:"POST", headers:{"Content-Type":"application/json"}, body: JSON.stringify(body)});
+  let data = {}; try { data = await r.json(); } catch (e) {}
+  if (!r.ok) throw new Error(data.error || "Couldn't reach the server");
+  return data;
+}
+function pushItems(){
+  const items = baseRoutine().filter(x => /^\d{2}:\d{2}$/.test(x.time || "")).map(x => ({t: x.time, title: x.title}));
+  const eve = (S.settings && S.settings.eve) || "21:00"; if (/^\d{2}:\d{2}$/.test(eve)) items.push({t: eve, title: "Log your day in Grindboard"});
+  return items;
+}
+const tzName = () => { try { return Intl.DateTimeFormat().resolvedOptions().timeZone || "Europe/London"; } catch (e) { return "Europe/London"; } };
+async function enablePush(test){
+  try {
+    if (!PUSH_OK) { toast("This phone can't get notifications from the app"); return false; }
+    const perm = Notification.permission === "granted" ? "granted" : await Notification.requestPermission();
+    if (perm !== "granted") { toast("Notifications are blocked. Allow them in your phone settings."); return false; }
+    const reg = await navigator.serviceWorker.ready;
+    const key = Uint8Array.from(atob(VAPID.replace(/-/g, "+").replace(/_/g, "/") + "===".slice((VAPID.length + 3) % 4)), c => c.charCodeAt(0));
+    const sub = (await reg.pushManager.getSubscription()) || (await reg.pushManager.subscribe({userVisibleOnly: true, applicationServerKey: key}));
+    const items = pushItems(), tz = tzName();
+    await apiPost("/subscribe", {sub: sub.toJSON(), tz, items, test: !!test});
+    try { localStorage.setItem("gb-push-hash", JSON.stringify([items, tz])); } catch (e) {}
+    S.settings.push = true; persist(); toast(test ? "Notifications on. Check for a test one." : "Notifications updated");
+    return true;
+  } catch (e) { toast("Couldn't turn on notifications: " + e.message); return false; }
+}
+async function disablePush(){
+  try { const reg = await navigator.serviceWorker.ready, sub = await reg.pushManager.getSubscription();
+    if (sub) { await apiPost("/unsubscribe", {endpoint: sub.endpoint}).catch(() => {}); await sub.unsubscribe(); } } catch (e) {}
+  S.settings.push = false; try { localStorage.removeItem("gb-push-hash"); } catch (e) {} persist(); toast("Notifications off");
+}
+let pushT = null;
+function syncPushSoon(){
+  if (!PUSH_OK || !S || !S.settings || !S.settings.push) return;
+  clearTimeout(pushT); pushT = setTimeout(async () => {
+    const h = JSON.stringify([pushItems(), tzName()]); let old = null; try { old = localStorage.getItem("gb-push-hash"); } catch (e) {}
+    if (h === old) return;
+    try { const reg = await navigator.serviceWorker.ready, sub = await reg.pushManager.getSubscription(); if (!sub) return;
+      await apiPost("/subscribe", {sub: sub.toJSON(), tz: tzName(), items: pushItems()}); localStorage.setItem("gb-push-hash", h); } catch (e) {}
+  }, 2500);
+}
+
+/* coach */
+let coachBusy = false;
+function coachContext(){
+  const p = PATHS[S.profile.path], today = keyOf(new Date()), lines = [];
+  lines.push(`Name: ${S.profile.name || "-"} | Path: ${p.name} | Wake-up: ${S.profile.wake} | Monthly goal: £${S.profile.goal || 0} | Today: ${prettyDayLong(today)} | Streak: ${streak()} days`);
+  try { const r = rwStats(); lines.push(`Level ${r.lv + 1} (${r.name}), ${r.xp} points, best streak ${r.best}, full days ${r.fullDays}`); } catch (e) {}
+  lines.push("Daily routine: " + baseRoutine().map(x => `${x.time} ${x.title}`).join("; "));
+  lines.push("Last 14 days (routine % done, numbers):");
+  for (let i = 13; i >= 0; i--) { const k = addDays(-i), d = S.days[k]; const nums = d && d.nums ? p.nums.map(([key, label, u]) => d.nums[key] ? `${label} ${u}${d.nums[key]}` : "").filter(Boolean).join(", ") : "";
+    lines.push(`- ${k}: ${Math.round(dayPct(k) * 100)}%${nums ? " | " + nums : ""}`); }
+  lines.push(`Money in last 7 days: £${moneyIn(7)}, last 30 days: £${moneyIn(30)}`);
+  const open = (S.tasks || []).filter(t => !t.done).slice(0, 15);
+  lines.push("Open to-dos: " + (open.length ? open.map(t => `${t.text}${t.due ? " (due " + t.due + ")" : ""}${t.priority === "high" ? " [high]" : ""}`).join("; ") : "none"));
+  lines.push(`Done to-dos: ${(S.tasks || []).filter(t => t.done).length}`);
+  const c = jcfg(), js = (S.journal || []).slice().sort((a,b) => (b.date + (b.time||"")).localeCompare(a.date + (a.time||""))).slice(0, 25);
+  lines.push(`Journal (each entry is a ${c.entry}; newest first):`);
+  js.forEach(e => lines.push(`- ${e.date}${e.time ? " " + e.time : ""}: ${[c.what && e.what ? c.what + ": " + e.what : "", c.what2 && e.what2 ? c.what2 + ": " + e.what2 : "", c.money && isNum(e.result) ? "result £" + e.result : "", c.plan ? (e.plan === false ? "said NO to: " : "said yes to: ") + c.planQ : "", (e.tags || []).length ? "setbacks: " + e.tags.join(", ") : "", e.mood ? "felt " + e.mood : "", e.grade ? "grade " + e.grade : "", isNum(e.r) ? e.r + "R" : "", e.notes ? "notes: " + e.notes.slice(0, 200) : ""].filter(Boolean).join(" | ")}`));
+  if (!js.length) lines.push("- no entries yet");
+  if ((S.notes || []).length) lines.push("Playbook (what has worked): " + S.notes.slice(0, 10).map(n => n.text).join("; "));
+  return lines.join("\n");
+}
+function md(t){
+  const lines = esc(t).replace(/\*\*(.+?)\*\*/g, "<b>$1</b>").split("\n"); let out = "", inList = false;
+  lines.forEach(l => { const m = l.match(/^\s*(?:[-•*]|\d+\.)\s+(.*)/);
+    if (m) { if (!inList) { out += "<ul>"; inList = true; } out += `<li>${m[1]}</li>`; }
+    else { if (inList) { out += "</ul>"; inList = false; } if (l.trim()) out += `<p>${l.replace(/^#+\s*/, "")}</p>`; } });
+  return out + (inList ? "</ul>" : "");
+}
+function renderCoach(A){
+  S.coach = S.coach || [];
+  const quick = ["Review my last 7 days", "What's holding me back?", "Plan my day tomorrow", "How do I hit my monthly goal?"];
+  A.innerHTML = header() + jSeg() + `
+    <div class="card set coachcard"><div class="cardhead"><h2>Your coach</h2>${S.coach.length ? `<button type="button" class="ghost small" id="cClear">New chat</button>` : ""}</div>
+      ${S.coach.length ? "" : `<p class="muted" style="font-size:14.5px">Ask anything about your routine, journal and numbers. The coach reads your Grindboard data and gives you straight answers.</p>`}
+      <div class="chips">${quick.map(q => `<button type="button" class="chipb" data-q="${esc(q)}">${esc(q)}</button>`).join("")}</div>
+      <div class="chat" id="chat">${S.coach.map(m => `<div class="msg ${m.role}">${m.role === "assistant" ? md(m.content) : esc(m.content)}</div>`).join("")}${coachBusy ? `<div class="msg assistant thinking">Thinking<span>.</span><span>.</span><span>.</span></div>` : ""}</div>
+      <form id="cForm" class="addrow"><textarea id="cIn" rows="2" placeholder="Ask your coach…" aria-label="Ask your coach" ${coachBusy ? "disabled" : ""}></textarea><button class="btn small" type="submit" ${coachBusy ? "disabled" : ""}>Send</button></form>
+      <p class="muted" style="font-size:12.5px">Your data is only sent to the AI when you ask a question. The coach can be wrong, and it doesn't give financial advice.</p>
+    </div>`;
+  wireJSeg(A);
+  const ask = async q => {
+    q = q.trim(); if (!q || coachBusy) return;
+    S.coach.push({role:"user", content:q}); coachBusy = true; renderApp(); scrollChat();
+    try { const r = await apiPost("/ai", {messages: S.coach.slice(-8), context: coachContext()}); S.coach.push({role:"assistant", content: r.text || "No answer, try again."}); }
+    catch (e) { S.coach.pop(); toast(e.message); }
+    coachBusy = false; S.coach = S.coach.slice(-30); persist(); if (tab === "journal" && jView === "coach") { renderApp(); scrollChat(); }
+  };
+  A.querySelectorAll("[data-q]").forEach(b => b.onclick = () => ask(b.dataset.q));
+  A.querySelector("#cForm").onsubmit = e => { e.preventDefault(); ask(A.querySelector("#cIn").value); };
+  A.querySelector("#cIn").onkeydown = e => { if (e.key === "Enter" && !e.shiftKey) { e.preventDefault(); ask(e.target.value); } };
+  const cl = A.querySelector("#cClear"); if (cl) cl.onclick = () => { S.coach = []; persist(); renderApp(); };
+}
+function scrollChat(){ const c = document.getElementById("chat"); if (c && c.lastElementChild) c.lastElementChild.scrollIntoView({block:"nearest", behavior:"smooth"}); }
 
 /* ---------- reminders (.ics) ---------- */
 function downloadICS(eve){
@@ -560,7 +676,7 @@ const signed = v => (v > 0 ? "+" : "") + money2(v);
 const isNum = v => typeof v === "number" && !isNaN(v);
 const prettyDayLong = k => { const [y,m,d] = k.split("-").map(Number); return new Date(y, m-1, d).toLocaleDateString("en-GB", {weekday:"short", day:"numeric", month:"short"}); };
 function jEntries(){ S.journal = S.journal || []; return S.journal; }
-function jSeg(){ return `<div class="seg3" role="tablist" aria-label="Journal">${[["entries","Entries"],["stats","Stats"],["playbook","Playbook"]].map(([v,l]) => `<button type="button" role="tab" data-jv="${v}" aria-selected="${jView===v}">${l}</button>`).join("")}</div>`; }
+function jSeg(){ const segs = [["entries","Entries"],["stats","Stats"]].concat(API ? [["coach","Coach"]] : [], [["playbook","Playbook"]]); return `<div class="seg3" role="tablist" aria-label="Journal" style="grid-template-columns:repeat(${segs.length},1fr)">${segs.map(([v,l]) => `<button type="button" role="tab" data-jv="${v}" aria-selected="${jView===v}">${l}</button>`).join("")}</div>`; }
 function wireJSeg(A){ A.querySelectorAll("[data-jv]").forEach(b => b.onclick = () => { jView = b.dataset.jv; renderApp(); window.scrollTo(0,0); }); }
 
 function jRow(e, cfg){
@@ -931,6 +1047,9 @@ function renderApp(){
         <button type="button" class="switch" id="proofSw" role="switch" aria-checked="${!!st.proof}" aria-label="Take a photo when I tick a task"><i></i></button></div>
       </div>
       <div class="card set"><h2>Reminders</h2>
+        ${PUSH_OK ? `<div class="setrow"><div><b>Phone notifications</b><p class="muted">${IOS && !STANDALONE ? "Open Grindboard from your Home Screen icon to turn this on." : "A nudge at every task time, even when the app is closed."}</p></div><button type="button" class="switch" id="pushSw" role="switch" aria-checked="${!!st.push}" aria-label="Phone notifications" ${IOS && !STANDALONE ? "disabled" : ""}><i></i></button></div>
+        ${st.push ? `<button class="ghost" type="button" id="pushTest" style="align-self:flex-start">Send a test notification</button>` : ""}
+        <p class="muted" style="font-size:13px;margin-top:4px"><b>Or</b> use your calendar instead:</p>` : ""}
         <p class="muted">Put your routine in your phone's calendar. Your phone then reminds you at each time, even when Grindboard is closed.</p>
         <div class="setrow"><div><b>Evening journal reminder</b><p class="muted">A nudge to log your day</p></div><input type="time" id="remEve" value="${esc(st.eve||"21:00")}" style="width:auto"></div>
         <button class="btn" type="button" id="remCal">Add reminders to my calendar</button>
@@ -964,6 +1083,8 @@ function renderApp(){
     A.querySelectorAll("[data-size]").forEach(b => b.onclick = () => upd({size: b.dataset.size}));
     A.querySelector("#proofSw").onclick = () => { upd({proof: !S.settings.proof}); toast(S.settings.proof ? "Photo proof on" : "Photo proof off"); };
     A.querySelector("#remEve").onchange = ev => { S.settings.eve = ev.target.value; persist(); };
+    const psw = A.querySelector("#pushSw"); if (psw) psw.onclick = async () => { psw.disabled = true; if (S.settings.push) await disablePush(); else await enablePush(true); renderApp(); };
+    const pt = A.querySelector("#pushTest"); if (pt) pt.onclick = async () => { pt.disabled = true; await enablePush(true); pt.disabled = false; };
     A.querySelector("#remCal").onclick = () => downloadICS(A.querySelector("#remEve").value);
     A.querySelector("#sSave").onclick = () => {
       S.profile.name = A.querySelector("#sName").value.trim(); S.profile.wake = A.querySelector("#sWake").value || S.profile.wake;
@@ -996,6 +1117,7 @@ function renderApp(){
 
   if (tab === "journal" && jView === "entries") renderJournalEntries(A);
   if (tab === "journal" && jView === "stats") renderJournalStats(A);
+  if (tab === "journal" && jView === "coach") renderCoach(A);
   if (tab === "journal" && jView === "playbook") {
     const p = PATHS[S.profile.path];
     A.innerHTML = header() + jSeg() + `
