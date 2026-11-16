@@ -8,11 +8,11 @@
 <meta name="theme-color" content="#1a1614" media="(prefers-color-scheme: dark)">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="mobile-web-app-capable" content="yes">
-<meta name="gb-version" content="13">
+<meta name="gb-version" content="14">
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 <meta name="apple-mobile-web-app-title" content="Grindboard">
 <link rel="manifest" href="manifest.webmanifest">
-<script>window.GB_API = "https://grindboard-api.omareleter.workers.dev"; window.GB_VERSION = "13";</script>
+<script>window.GB_API = "https://grindboard-api.omareleter.workers.dev"; window.GB_VERSION = "14";</script>
 <link rel="icon" type="image/png" sizes="192x192" href="icon-192.png">
 <link rel="apple-touch-icon" href="apple-touch-icon.png">
 <style>html{-webkit-text-size-adjust:100%}body{margin:0}img{max-width:100%}[hidden]{display:none!important}
@@ -346,6 +346,27 @@ body.typing{padding-bottom:24px}
 .wkbars div{height:100%;display:flex;flex-direction:column;justify-content:flex-end;align-items:center;gap:4px}
 .wkbars i{display:block;width:100%;border-radius:8px;background:linear-gradient(180deg,var(--accent),var(--fire))}
 .wkbars small{font-size:11px;color:var(--muted);font-weight:700}
+
+.reader{display:flex;flex-direction:column;gap:12px}
+.rmonth{font-size:15px;text-transform:uppercase;letter-spacing:.08em;color:var(--muted);margin:10px 4px 0}
+.rcard{display:block;width:100%;text-align:left;font:inherit;color:inherit;background:var(--surface);border:1px solid var(--line);border-radius:20px;padding:18px;cursor:pointer}
+.rcard.wind{cursor:default;background:var(--sunk)}
+.rentry{display:flex;flex-direction:column;gap:10px}
+.rhead{display:flex;justify-content:space-between;align-items:baseline;gap:10px}
+.rdate{font-size:13px;color:var(--muted);font-weight:600}
+.rres{font-family:var(--mono);font-variant-numeric:tabular-nums}
+.rentry h3{margin:0;font-family:var(--display);font-size:20px;line-height:1.25}
+.rentry.big h3{font-size:24px}
+.rbody p{margin:0 0 10px;font-size:16px;line-height:1.65}.rbody p:last-child{margin:0}
+.rentry.big .rbody p{font-size:17px}
+.rphotos{display:grid;grid-template-columns:repeat(auto-fill,minmax(120px,1fr));gap:8px}
+.rphotos img{width:100%;aspect-ratio:1;object-fit:cover;border-radius:14px;cursor:zoom-in}
+.rentry.big .rphotos{grid-template-columns:1fr}.rentry.big .rphotos img{aspect-ratio:auto;max-height:60vh;object-fit:contain;background:var(--sunk)}
+.rmeta{display:flex;flex-wrap:wrap;gap:8px}
+.rmeta span{background:var(--sunk);border-radius:12px;padding:6px 10px;font-size:14px;font-weight:600}
+.rmeta small{display:block;font-size:11px;font-weight:600;color:var(--muted)}
+.rtags{display:flex;flex-wrap:wrap;gap:6px}.rtags em{font-style:normal;font-size:12.5px;font-weight:600;padding:3px 10px;border-radius:999px;background:var(--fire-soft);color:var(--fire)}
+.rnav{display:grid;grid-template-columns:1fr 1fr;gap:10px}
 @media (prefers-reduced-motion:reduce){*{transition:none!important;animation:none!important}.confetti{display:none}}
 </style>
 
@@ -694,6 +715,57 @@ function scrollChat(){ const c = document.getElementById("chat"); if (c && c.las
 
 
 
+
+/* ---------- reading your journal (no editing) ---------- */
+function paras(t){ return esc(t || "").split(/\n{2,}|\n/).filter(x => x.trim()).map(x => `<p>${x}</p>`).join(""); }
+function entryReadHTML(e, cfg, big){
+  const photos = (e.photos || []).map(ph => photoSrc({photo: ph})).filter(Boolean);
+  const bits = [];
+  if (cfg.what2 && e.what2) bits.push([cfg.what2, e.what2]);
+  if (cfg.trade && e.side) bits.push(["Direction", e.side]);
+  if (isNum(e.r)) bits.push(["R multiple", e.r + "R"]);
+  return `<article class="rentry ${big ? "big" : ""}">
+    <div class="rhead"><span class="rdate">${prettyDayLong(e.date)}${e.time ? " · " + esc(e.time) : ""}</span>${cfg.money && isNum(e.result) ? `<b class="rres ${e.result > 0 ? "pos" : e.result < 0 ? "neg" : ""}">${signed(e.result)}</b>` : ""}</div>
+    <h3>${e.worked ? "⭐ " : ""}${esc((cfg.what && e.what) || cfg.cap)}</h3>
+    ${e.notes ? `<div class="rbody">${paras(e.notes)}</div>` : ""}
+    ${photos.length ? `<div class="rphotos">${photos.map(src => `<img src="${esc(src)}" alt="" data-rph>`).join("")}</div>` : ""}
+    <div class="rmeta">
+      ${bits.map(([k, v]) => `<span><small>${esc(k)}</small>${esc(v)}</span>`).join("")}
+      ${cfg.plan ? `<span><small>${esc(cfg.planQ)}</small>${e.plan === false ? "No" : "Yes"}</span>` : ""}
+      ${e.mood ? `<span><small>Felt</small>${esc(e.mood)}</span>` : ""}
+      ${e.grade ? `<span><small>Grade</small>${esc(e.grade)}</span>` : ""}
+    </div>
+    ${(e.tags || []).length ? `<div class="rtags">${e.tags.map(t => `<em>${esc(t)}</em>`).join("")}</div>` : ""}
+  </article>`;
+}
+function openReadEntry(id){
+  const cfg = jcfg(), list = jEntries().slice().sort((a,b) => (b.date + (b.time||"")).localeCompare(a.date + (a.time||""))), i = list.findIndex(e => e.id === id);
+  if (i < 0) return; const e = list[i], box = openSheet();
+  box.innerHTML = `<div class="grab" aria-hidden="true"></div>${entryReadHTML(e, cfg, true)}
+    <div class="rnav"><button type="button" class="ghost" id="rPrev" ${i >= list.length - 1 ? "disabled" : ""}>‹ Older</button><button type="button" class="ghost" id="rNext" ${i <= 0 ? "disabled" : ""}>Newer ›</button></div>
+    <button type="button" class="btn" id="rClose">Close</button>
+    <button type="button" class="ghost" id="rEdit">✎ Edit this entry</button>`;
+  box.querySelectorAll("[data-rph]").forEach(im => im.onclick = () => openPhoto(im.src, prettyDay(e.date)));
+  box.querySelector("#rClose").onclick = closeSheet;
+  box.querySelector("#rEdit").onclick = () => openEntry(e.id);
+  const pv = box.querySelector("#rPrev"), nx = box.querySelector("#rNext");
+  pv.onclick = () => openReadEntry(list[i + 1].id); nx.onclick = () => openReadEntry(list[i - 1].id);
+}
+function renderJournalRead(A){
+  const cfg = jcfg(), items = [];
+  jEntries().forEach(e => items.push({k: e.date + (e.time || "99"), e}));
+  Object.entries(S.days || {}).forEach(([k, d]) => { if (d.wind && ((d.wind.wins || []).some(Boolean) || d.wind.top)) items.push({k: k + "99:99", w: d.wind, date: k}); });
+  items.sort((a, b) => b.k.localeCompare(a.k));
+  const months = {}; items.forEach(it => { const d = it.e ? it.e.date : it.date, m = new Date(d + "T12:00:00").toLocaleDateString("en-GB", {month: "long", year: "numeric"}); (months[m] = months[m] || []).push(it); });
+  A.innerHTML = header() + jSeg() + (items.length ? `<div class="reader">${Object.entries(months).map(([m, its]) => `<h2 class="rmonth">${m}</h2>${its.map(it => it.e
+      ? `<button type="button" class="rcard" data-read="${it.e.id}">${entryReadHTML(it.e, cfg, false)}</button>`
+      : `<div class="rcard wind"><article class="rentry"><div class="rhead"><span class="rdate">${prettyDayLong(it.date)} · Night wind-down</span></div><h3>🌙 Wins of the day</h3>
+          <div class="rbody">${(it.w.wins || []).filter(Boolean).map(x => `<p>• ${esc(x)}</p>`).join("")}${it.w.top ? `<p><small class="muted">Tomorrow's #1 job</small><br>${esc(it.w.top)}</p>` : ""}</div></article></div>`).join("")}`).join("")}</div>`
+    : `<div class="empty">Nothing to read yet. Your journal entries and night wind-downs show up here as a diary you can scroll through.</div>`);
+  wireJSeg(A);
+  A.querySelectorAll("[data-read]").forEach(b => b.onclick = () => openReadEntry(b.dataset.read));
+}
+
 /* ---------- custom colour picker ---------- */
 const PALETTE = ["#e11d48","#f43f5e","#ec4899","#d946ef","#a855f7","#7c3aed","#6366f1","#3b82f6","#0ea5e9","#06b6d4","#14b8a6","#10b981",
                  "#22c55e","#84cc16","#eab308","#f59e0b","#f97316","#ef4444","#b45309","#78716c","#64748b","#0f766e","#1e3a8a","#111827"];
@@ -907,33 +979,93 @@ async function pwHash(email, pw){
 const canRender = () => document.getElementById("sheet").hidden && !document.body.classList.contains("typing") && !document.querySelector(".gameov, .nightov");
 function safeRender(){ if (canRender()) { if (S && S.profile) renderApp(); else renderOnboarding(); } else setTimeout(safeRender, 1500); }
 let syncT = null, syncing = false;
-function markDirty(){ if (!auth || !API) return; syncMeta.dirty = true; saveMeta(); clearTimeout(syncT); syncT = setTimeout(() => pushSync(), 6000); }
-async function pushSync(force){
-  if (!auth || !API || !S || !S.profile || syncing) return false; syncing = true; let ok = false;
-  try {
-    let r = await api("PUT", "/sync", {data: JSON.stringify(S), base: syncMeta.updated, force: !!force});
-    if (r.status === 409) r = await api("PUT", "/sync", {data: JSON.stringify(S), base: r.data.updated, force: true});   // this phone has the newest edit
-    syncMeta.updated = r.data.updated; syncMeta.dirty = false; syncMeta.at = Date.now(); saveMeta(); ok = true;
-    queuePhotos(); paintSyncLabel();
-  } catch (e) {}
-  syncing = false; return ok;
+/* ---- merging: both devices' changes are kept; sync never deletes an entry ---- */
+const BASEKEY = "gb-sync-base", SNAPKEY = "gb-safety";
+const jstr = x => JSON.stringify(x === undefined ? null : x);
+function loadBase(){ try { return JSON.parse(localStorage.getItem(BASEKEY) || "null"); } catch (e) { return null; } }
+function saveBase(text){ try { localStorage.setItem(BASEKEY, text); } catch (e) {} }
+function safetyCopy(){ try { const snaps = JSON.parse(localStorage.getItem(SNAPKEY) || "[]"); snaps.unshift({at: Date.now(), data: JSON.stringify(S)}); localStorage.setItem(SNAPKEY, JSON.stringify(snaps.slice(0, 3))); } catch (e) {} }
+function pick(b, l, r){ return jstr(l) === jstr(b) ? r : l; }   // whoever changed it wins; if both did, this device (newest edit) wins
+function mergeObj(b, l, r, inner){
+  b = b || {}; l = l || {}; r = r || {}; const out = {};
+  new Set([...Object.keys(r), ...Object.keys(l)]).forEach(k => {
+    const inL = k in l, inR = k in r, inB = k in b;
+    if (inL && inR) out[k] = inner ? inner(b[k], l[k], r[k]) : pick(b[k], l[k], r[k]);
+    else if (inL) { if (!inB || jstr(l[k]) !== jstr(b[k])) out[k] = l[k]; }      // new here, or changed here after the other device removed it
+    else if (inR) { if (!inB || jstr(r[k]) !== jstr(b[k])) out[k] = r[k]; }
+  });
+  return out;
 }
-async function pullSync(){
-  if (!auth || !API) return;
+function mergeList(b, l, r, keepAll){
+  const byId = a => { const m = new Map(); (a || []).forEach(x => { if (x && x.id != null) m.set(String(x.id), x); }); return m; };
+  const B = byId(b), L = byId(l), R = byId(r), out = [], seen = new Set();
+  const add = id => { if (seen.has(id)) return; seen.add(id); const inL = L.has(id), inR = R.has(id), inB = B.has(id);
+    if (inL && inR) out.push(pick(B.get(id), L.get(id), R.get(id)));
+    else if (inL) { if (keepAll || !inB || jstr(L.get(id)) !== jstr(B.get(id))) out.push(L.get(id)); }
+    else if (inR) { if (keepAll || !inB || jstr(R.get(id)) !== jstr(B.get(id))) out.push(R.get(id)); } };
+  (l || []).forEach(x => x && x.id != null && add(String(x.id))); (r || []).forEach(x => x && x.id != null && add(String(x.id)));
+  return out;
+}
+function mergeDay(b, l, r){
+  b = b || {}; l = l || {}; r = r || {}; const out = mergeObj(b, l, r);
+  out.done = mergeObj(b.done, l.done, r.done); out.nums = mergeObj(b.nums, l.nums, r.nums);
+  if (l.playMs || r.playMs) out.playMs = Math.max(l.playMs || 0, r.playMs || 0);
+  return out;
+}
+function mergeStates(base, local, remote){
+  if (!local || !local.profile) return remote; if (!remote || !remote.profile) return local;
+  base = base || {}; const out = mergeObj(base, local, remote);
+  out.days = mergeObj(base.days, local.days, remote.days, mergeDay);
+  out.journal = mergeList(base.journal, local.journal, remote.journal, !base.journal);   // no shared history yet: keep every entry from both
+  out.tasks = mergeList(base.tasks, local.tasks, remote.tasks, !base.tasks);
+  out.notes = mergeList(base.notes, local.notes, remote.notes, !base.notes);
+  out.rewards = mergeList(base.rewards, local.rewards, remote.rewards, !base.rewards);
+  out.settings = mergeObj(base.settings, local.settings, remote.settings);
+  out.profile = mergeObj(base.profile, local.profile, remote.profile);
+  if ((remote.coach || []).length > (local.coach || []).length && jstr(local.coach) === jstr(base.coach)) out.coach = remote.coach; else out.coach = local.coach || remote.coach;
+  return out;
+}
+function markDirty(){ if (!auth || !API) return; syncMeta.dirty = true; saveMeta(); clearTimeout(syncT); syncT = setTimeout(() => syncNow(), 2500); }
+async function pushSync(force){ return syncNow(force); }
+async function pullSync(){ return syncNow(); }
+let syncAgain = false;
+async function syncNow(forcePush){
+  if (!auth || !API || !S || !S.profile) return false;
+  if (syncing) { syncAgain = true; return false; } syncing = true; let ok = false;
   try {
-    const r = await api("GET", "/sync");
-    if (r.data.user && auth) { auth.name = r.data.user.name; }
-    if (r.data.data && r.data.updated > syncMeta.updated) {
-      if (syncMeta.dirty) { await pushSync(true); return; }
-      useRemote(r.data.data, r.data.updated);
-    } else if (!r.data.data && S && S.profile) await pushSync(true);
-    else if (syncMeta.dirty) await pushSync();
-    else { syncMeta.at = Date.now(); saveMeta(); paintSyncLabel(); }
+    const g = await api("GET", "/sync");
+    if (g.data.user && auth) auth.name = g.data.user.name;
+    const remoteText = g.data.data, remoteUpd = g.data.updated || 0;
+    const firstMerge = !loadBase();   // first sync with this version: combine, never replace
+    const remoteNewer = remoteText && (remoteUpd > syncMeta.updated || firstMerge);
+    if (remoteNewer) {
+      const remote = JSON.parse(remoteText);
+      if (syncMeta.dirty || firstMerge) {
+        safetyCopy();
+        S = mergeStates(loadBase(), S, remote); localStorage.setItem(LSKEY, JSON.stringify(S));
+        const pr = await api("PUT", "/sync", {data: JSON.stringify(S), base: remoteUpd});
+        if (pr.status === 409) { syncAgain = true; } else { syncMeta.updated = pr.data.updated; syncMeta.dirty = false; saveBase(JSON.stringify(S)); }
+        if (S.settings) applySettings(); safeRender();
+      } else {
+        safetyCopy();
+        S = remote; localStorage.setItem(LSKEY, remoteText); syncMeta.updated = remoteUpd; syncMeta.dirty = false; saveBase(remoteText);
+        if (S.settings) applySettings(); safeRender();
+      }
+      fetchMissingPhotos();
+    } else if (syncMeta.dirty || !remoteText || forcePush) {
+      const text = JSON.stringify(S), pr = await api("PUT", "/sync", {data: text, base: remoteText ? remoteUpd : 0});
+      if (pr.status === 409) syncAgain = true; else { syncMeta.updated = pr.data.updated; syncMeta.dirty = false; saveBase(text); }
+    }
+    syncMeta.at = Date.now(); saveMeta(); ok = true; queuePhotos(); paintSyncLabel();
   } catch (e) {}
+  syncing = false;
+  if (syncAgain) { syncAgain = false; setTimeout(() => syncNow(), 400); }
+  return ok;
 }
 function useRemote(text, updated){
+  safetyCopy();
   try { S = JSON.parse(text); localStorage.setItem(LSKEY, text); } catch (e) { return; }
-  syncMeta.updated = updated; syncMeta.dirty = false; syncMeta.at = Date.now(); saveMeta();
+  syncMeta.updated = updated; syncMeta.dirty = false; syncMeta.at = Date.now(); saveMeta(); saveBase(text);
   if (S && S.settings) applySettings(); safeRender(); fetchMissingPhotos();
 }
 async function queuePhotos(){
@@ -971,11 +1103,15 @@ function accountCard(){
     <div class="addrow"><button type="button" class="btn small" data-auth="signup">Create free account</button><button type="button" class="ghost" data-auth="login">Sign in</button></div></div>`;
   return `<div class="card set acc"><h2>☁️ Your account</h2><p><b>${esc(auth.email)}</b></p><p class="muted" id="syncLbl">Saved to your account ${agoText(syncMeta.at)}</p>
     <div class="addrow"><button type="button" class="btn small" id="syncNow">Sync now</button><button type="button" class="ghost" id="signOut">Sign out</button></div>
+    ${(() => { try { const sn = JSON.parse(localStorage.getItem(SNAPKEY) || "[]"); return sn.length ? `<button type="button" class="ghost small" id="undoSync" style="align-self:flex-start">Undo last sync (${agoText(sn[0].at)})</button>` : ""; } catch (e) { return ""; } })()}
     <div id="soBox" hidden class="empty">Sign out? Your data stays on this device and in your account. <div class="addrow" style="margin-top:10px"><button class="btn small" type="button" id="soYes">Sign out</button><button class="ghost" type="button" id="soNo">Cancel</button></div></div></div>`;
 }
 function wireAccount(A){
   A.querySelectorAll("[data-auth]").forEach(b => b.onclick = () => openAuth(b.dataset.auth));
-  const sn = A.querySelector("#syncNow"); if (sn) sn.onclick = async () => { sn.disabled = true; sn.textContent = "Syncing…"; await pullSync(); if (syncMeta.dirty || !syncMeta.at) await pushSync(true); sn.disabled = false; sn.textContent = "Sync now"; paintSyncLabel(); toast("All saved ✅"); };
+  const sn = A.querySelector("#syncNow"); if (sn) sn.onclick = async () => { sn.disabled = true; sn.textContent = "Syncing…"; await syncNow(true); sn.disabled = false; sn.textContent = "Sync now"; paintSyncLabel(); toast("All saved ✅"); };
+  const us = A.querySelector("#undoSync"); if (us) us.onclick = async () => { try { const sn = JSON.parse(localStorage.getItem(SNAPKEY) || "[]"); if (!sn.length) return;
+      const back = JSON.parse(sn[0].data); localStorage.setItem(SNAPKEY, JSON.stringify(sn.slice(1)));
+      S = mergeStates(null, back, S); localStorage.setItem(LSKEY, JSON.stringify(S)); syncMeta.dirty = true; saveMeta(); await syncNow(true); renderApp(); toast("Brought back everything from before the last sync ✅"); } catch (e) { toast("Couldn't undo"); } };
   const so = A.querySelector("#signOut"); if (so) so.onclick = () => { A.querySelector("#soBox").hidden = false; };
   const sy = A.querySelector("#soYes"); if (sy) sy.onclick = async () => { await pushSync(true); try { await api("POST", "/auth/logout", {}); } catch (e) {} signedOut(); renderApp(); toast("Signed out"); };
   const sx = A.querySelector("#soNo"); if (sx) sx.onclick = () => { A.querySelector("#soBox").hidden = true; };
@@ -1015,7 +1151,7 @@ function openAuth(mode){
         auth = {token: r.data.token, email: r.data.user.email, name: r.data.user.name}; localStorage.setItem(AUTHKEY, JSON.stringify(auth));
         syncMeta = {updated: 0, dirty: false, at: 0}; saveMeta();
         if (m === "signup") {
-          if (S && S.profile) { if (!S.profile.name && c.name.trim()) S.profile.name = c.name.trim(); await pushSync(true); }
+          if (S && S.profile) { if (!S.profile.name && c.name.trim()) S.profile.name = c.name.trim(); syncMeta.dirty = true; await syncNow(true); }
           closeSheet(); toast(S && S.profile ? "Account created. Everything is backed up ✅" : "Account created ✅");
         } else {
           const g = await api("GET", "/sync"), remote = g.data.data;
@@ -1035,15 +1171,18 @@ function chooseCopy(remote, updated){
     <p class="muted">This device and your account both have a Grindboard. Pick the one to keep. The other one gets replaced.</p>
     <button type="button" class="btn" id="ccAcc">Use my account<br><small style="font-weight:500">${esc(count(r))}, saved ${agoText(updated)}</small></button>
     <p class="muted" style="font-size:13px">If this is a different person (like a sister), tap Cancel and create her own account instead.</p>
-    <button type="button" class="ghost" id="ccPhone">Keep this device's data<br><small>${esc(count(S))}</small></button>`;
+    <button type="button" class="ghost" id="ccPhone">Combine both<br><small>${esc(count(S))}</small></button>`;
   box.insertAdjacentHTML("beforeend", `<button type="button" class="ghost" id="ccCancel">Cancel</button>`);
   box.querySelector("#ccCancel").onclick = async () => { try { await api("POST", "/auth/logout", {}); } catch (e) {} signedOut(); closeSheet(); };
   box.querySelector("#ccAcc").onclick = () => { closeSheet(); useRemote(remote, updated); toast("Loaded from your account ✅"); };
-  box.querySelector("#ccPhone").onclick = async () => { syncMeta.updated = updated; await pushSync(true); closeSheet(); toast("This device's data is now in your account ✅"); };
+  box.querySelector("#ccPhone").onclick = async () => { safetyCopy(); S = mergeStates(null, S, r); localStorage.setItem(LSKEY, JSON.stringify(S)); syncMeta.updated = updated; syncMeta.dirty = true; saveMeta(); await syncNow(true); closeSheet(); safeRender(); toast("Combined this device with your account ✅"); };
 }
 if (API) {
-  document.addEventListener("visibilitychange", () => { if (!auth) return; if (document.hidden) { if (syncMeta.dirty) pushSync(); } else pullSync(); });
-  setTimeout(() => { if (auth) pullSync(); }, 800);
+  document.addEventListener("visibilitychange", () => { if (!auth) return; if (document.hidden) { if (syncMeta.dirty) syncNow(); } else syncNow(); });
+  window.addEventListener("focus", () => { if (auth) syncNow(); });
+  window.addEventListener("online", () => { if (auth) syncNow(); });
+  setInterval(() => { if (auth && !document.hidden) syncNow(); }, 30000);
+  setTimeout(() => { if (auth) syncNow(); }, 800);
 }
 
 if (NATIVE) document.addEventListener("click", e => { if (e.target.closest && e.target.closest(".tickb, .gem, .chipb, .switch") && CP.Haptics) CP.Haptics.impact({style: "LIGHT"}).catch(() => {}); }, true);
@@ -1215,7 +1354,7 @@ const signed = v => (v > 0 ? "+" : "") + money2(v);
 const isNum = v => typeof v === "number" && !isNaN(v);
 const prettyDayLong = k => { const [y,m,d] = k.split("-").map(Number); return new Date(y, m-1, d).toLocaleDateString("en-GB", {weekday:"short", day:"numeric", month:"short"}); };
 function jEntries(){ S.journal = S.journal || []; return S.journal; }
-function jSeg(){ const segs = [["entries","Entries"],["stats","Stats & numbers"],["photos","Photos"]]; return `<div class="seg3" role="tablist" aria-label="Journal" style="grid-template-columns:repeat(${segs.length},1fr)">${segs.map(([v,l]) => `<button type="button" role="tab" data-jv="${v}" aria-selected="${jView===v}">${l}</button>`).join("")}</div>`; }
+function jSeg(){ const segs = [["entries","Entries"],["read","Read"],["stats","Stats"],["photos","Photos"]]; return `<div class="seg3" role="tablist" aria-label="Journal" style="grid-template-columns:repeat(${segs.length},1fr)">${segs.map(([v,l]) => `<button type="button" role="tab" data-jv="${v}" aria-selected="${jView===v}">${l}</button>`).join("")}</div>`; }
 function wireJSeg(A){ A.querySelectorAll("[data-jv]").forEach(b => b.onclick = () => { jView = b.dataset.jv; renderApp(); window.scrollTo(0,0); }); }
 
 function jRow(e, cfg){
@@ -1235,7 +1374,7 @@ function renderJournalEntries(A){
   wireJSeg(A);
   A.querySelector("#jNew").onclick = () => openEntry(null);
   A.querySelector("#jCust").onclick = openJCustom;
-  A.querySelectorAll("[data-je]").forEach(b => b.onclick = () => openEntry(b.dataset.je));
+  A.querySelectorAll("[data-je]").forEach(b => b.onclick = () => openReadEntry(b.dataset.je));
 }
 function grp(list, fn){ const m = new Map(); list.forEach(e => [].concat(fn(e)).forEach(k => { if (!k) return; const g = m.get(k) || {k, v:0, n:0, w:0}; if (isNum(e.result)) { g.v += e.result; if (e.result > 0) g.w++; } g.n++; m.set(k, g); })); return [...m.values()]; }
 function jBars(rows, byCount, empty){
@@ -1624,7 +1763,7 @@ function renderApp(){
         </div>
         <button class="btn small" type="button" id="sSave" style="align-self:flex-start">Save changes</button>
       </div>
-      <p class="muted" style="text-align:center;font-size:12.5px">Grindboard version 13</p>
+      <p class="muted" style="text-align:center;font-size:12.5px">Grindboard version 14</p>
       <div class="card set"><h2>Backup</h2>
         <p class="muted">Your plan is saved on this phone. Download a backup to keep it safe or to move it to a new phone. Photos stay on this phone.</p>
         <div class="addrow"><button class="btn small" id="bkDown" type="button">Download backup</button><label class="ghost" for="bkIn" style="cursor:pointer;display:inline-flex;align-items:center">Restore backup</label></div>
@@ -1661,6 +1800,7 @@ function renderApp(){
 
   if (tab === "journal" && jView === "entries") renderJournalEntries(A);
   if (tab === "journal" && jView === "stats") renderJournalStats(A);
+  if (tab === "journal" && jView === "read") renderJournalRead(A);
   if (tab === "coach") renderCoach(A);
   if (tab === "journal" && jView === "coach") { jView = "entries"; }
   if (tab === "journal" && jView === "playbook") jView = "photos";
